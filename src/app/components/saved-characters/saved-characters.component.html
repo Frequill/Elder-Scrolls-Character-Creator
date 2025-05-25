@@ -1,0 +1,48 @@
+<div class="saved-container">
+  <div class="header">
+    <button class="back-btn" (click)="createNewCharacter()">Create New</button>
+    <h1>Saved Characters</h1>
+    <button class="home-btn" (click)="returnToHome()">Home</button>
+  </div>
+  
+  <div class="content fade-in">
+    <div class="character-grid" *ngIf="characters.length > 0">
+      <div class="character-card" *ngFor="let item of characters" (click)="loadCharacter(item.character)">
+        <div class="card-header">
+          <h3>{{ item.character.name || 'Unnamed Character' }}</h3>
+          <button class="delete-btn" (click)="deleteCharacter(item.id, $event)">×</button>
+        </div>
+        
+        <div class="character-image" *ngIf="item.character.imageUrl">
+          <img [src]="item.character.imageUrl" [alt]="item.character.name || 'Character portrait'">
+        </div>
+        <div class="placeholder-image" *ngIf="!item.character.imageUrl">
+          <div class="placeholder-text">No Image</div>
+        </div>
+        
+        <div class="character-info">
+          <div class="info-item">
+            <span class="label">Game:</span>
+            <span class="value">{{ item.character.game }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Race:</span>
+            <span class="value">{{ item.character.race.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Class:</span>
+            <span class="value">{{ item.character.class.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="no-characters" *ngIf="characters.length === 0">
+      <div class="message">
+        <h2>No Saved Characters</h2>
+        <p>You haven't saved any characters yet. Create a new character to get started!</p>
+        <button class="create-btn" (click)="createNewCharacter()">Create Character</button>
+      </div>
+    </div>
+  </div>
+</div>

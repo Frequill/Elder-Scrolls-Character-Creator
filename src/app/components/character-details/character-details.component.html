@@ -1,0 +1,97 @@
+<div class="details-container" *ngIf="character">
+  <div class="header">
+    <button class="back-btn" (click)="createNewCharacter()">Create New</button>
+    <h1>Character Details</h1>
+    <button class="home-btn" (click)="returnToHome()">Home</button>
+  </div>
+  
+  <!-- API Key Notification Banner -->
+  <div class="api-notification" *ngIf="apiConnectionError || backstoryApiError || imageApiError">
+    <div class="notification-content">
+      <div class="notification-icon error">!</div>
+      <div class="notification-message">
+        <p *ngIf="apiConnectionError"><strong>API Connection Issue</strong></p>
+        <p *ngIf="apiConnectionError">{{ apiErrorMessage }}</p>
+        
+        <p *ngIf="backstoryApiError"><strong>Backstory Generation Error</strong></p>
+        <p *ngIf="backstoryApiError">{{ backstoryApiError }}</p>
+        
+        <p *ngIf="imageApiError"><strong>Image Generation Error</strong></p>
+        <p *ngIf="imageApiError">{{ imageApiError }}</p>
+        
+        <p *ngIf="apiConnectionError">Configure your API key to continue.</p>
+      </div>
+      <button class="api-settings-btn" (click)="navigateToApiSettings()" *ngIf="apiConnectionError">Configure API Key</button>
+    </div>
+  </div>
+  
+  <div class="content fade-in">
+    <div class="name-section">
+      <div class="input-group">
+        <label for="characterName">Character Name:</label>
+        <input type="text" id="characterName" [(ngModel)]="characterName" placeholder="Enter a name for your character">
+      </div>
+      <button class="save-btn" (click)="saveCharacter()" [class.saved]="isSaved">
+        {{ isSaved ? 'Saved!' : 'Save Character' }}
+      </button>
+    </div>
+    
+    <div class="character-info">
+      <!-- Character Image on the left -->
+      <div class="character-image-container">
+        <div class="character-image" *ngIf="characterImage">
+          <img [src]="characterImage" alt="Character Portrait" onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+        </div>
+        <div class="placeholder-image" *ngIf="!characterImage">
+          <div class="placeholder-text">No Image</div>
+        </div>
+        <button class="generate-btn" (click)="generateImage()" [disabled]="isGeneratingImage">
+          {{ isGeneratingImage ? 'Generating...' : 'Generate Image' }}
+        </button>
+      </div>
+      
+      <!-- Character Stats in the middle -->
+      <div class="character-stats">
+        <h2>{{ character.race.name }} {{ character.class.name }}</h2>
+        <div class="character-detail">
+          <span class="label">Game:</span>
+          <span class="value">{{ character.game }}</span>
+        </div>
+        <div class="character-detail">
+          <span class="label">Race:</span>
+          <span class="value">{{ character.race.name }}</span>
+        </div>
+        <div class="character-detail">
+          <span class="label">Class:</span>
+          <span class="value">{{ character.class.name }}</span>
+        </div>
+        <div class="character-detail">
+          <span class="label">Skills:</span>
+          <div class="skills">
+            <span *ngFor="let skill of character.class.skills" class="skill-tag">{{ skill }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Backstory Section (centered and prominent) -->
+    <div class="backstory-section">
+      <h3>Character Backstory</h3>
+      <div class="backstory-content" *ngIf="backstory">
+        <div [innerHTML]="backstory | paragraphs"></div>
+      </div>
+      <div class="no-backstory" *ngIf="!backstory">
+        <p>No backstory generated yet.</p>
+      </div>
+      <button class="generate-btn" (click)="generateBackstory()" [disabled]="isGeneratingBackstory">
+        {{ isGeneratingBackstory ? 'Generating...' : 'Generate Backstory' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="no-character" *ngIf="!character">
+  <h2>No character selected</h2>
+  <p>Return to the character creation page to create a character.</p>
+  <button class="create-btn" (click)="createNewCharacter()">Create Character</button>
+</div>

@@ -1,0 +1,106 @@
+<div class="api-settings-container">
+  <div class="header">
+    <h1>OpenAI API Settings</h1>
+    <button class="back-btn" (click)="returnToHome()">Return to Home</button>
+  </div>
+  
+  <div class="content">
+    <div class="api-key-section">
+      <h3>API Key Configuration</h3>
+      
+      <p>
+        Enter your OpenAI API key to enable character generation features.
+        Your key is stored locally in your browser and is not sent to any server except OpenAI's API.
+      </p>
+        <div class="api-key-input">
+        <input type="{{showApiKey ? 'text' : 'password'}}" [(ngModel)]="apiKey" placeholder="Enter your OpenAI API key">
+        <button class="toggle-visibility" (click)="toggleApiKeyVisibility()">
+          {{showApiKey ? 'Hide' : 'Show'}}
+        </button>
+        <button class="clear-btn" (click)="clearApiKey()" *ngIf="apiKey">
+          Clear
+        </button>
+        <button class="test-btn" (click)="testApiConnection()" [disabled]="isTestingApi || !apiKey">
+          {{isTestingApi ? 'Testing...' : 'Test Connection'}}
+        </button>
+      </div>      <div class="api-status" *ngIf="apiStatus !== null" [ngClass]="{'success-status': apiStatus, 'error-status': !apiStatus}">
+        <div class="status-icon" [class.success]="apiStatus" [class.error]="!apiStatus">
+          {{apiStatus ? '✓' : '✗'}}
+        </div>
+        <div class="status-message">
+          <div *ngIf="apiStatus">
+            API connection successful! Your key is valid.
+            <div *ngIf="hasBilling" class="billing-status success">
+              ✓ Account has valid billing/credits for API usage.
+            </div>
+            <div *ngIf="hasBilling === false" class="billing-status warning">
+              ⚠️ API key is valid, but no active billing/credits were detected. You may need to set up billing.
+            </div>
+          </div>
+          <div *ngIf="!apiStatus" class="error-details">
+            <div>API connection failed.</div>
+            <div *ngIf="apiErrorMessage" class="error-message">
+              Error: {{apiErrorMessage}}
+            </div>
+            <div class="troubleshooting-tips">
+              <strong>Troubleshooting tips:</strong>
+              <ul>
+                <li>Check that your API key is correct and properly formatted</li>
+                <li>Ensure your OpenAI account has billing set up</li>
+                <li>Verify your key has access to the required models (GPT-3.5, GPT-4, DALL-E)</li>
+                <li>Check if your account has available credits or billing configured</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+        <div class="api-note">
+        You'll need an API key with access to GPT-4 and DALL-E 3 for the best experience.
+      </div>
+      
+      <!-- Advanced Model Testing Section -->
+      <div class="advanced-testing" *ngIf="apiStatus === true">
+        <h4>Model Access Testing</h4>
+        <p>Verify that your API key has access to the specific models needed for this application:</p>
+        
+        <div class="model-tests">
+          <div class="model-test">
+            <span>GPT-4 Access:</span>
+            <button class="test-model-btn" (click)="testGpt4Access()" [disabled]="isTestingGpt4">
+              {{isTestingGpt4 ? 'Testing...' : 'Test GPT-4 Access'}}
+            </button>
+            <span class="model-status" *ngIf="gpt4Status !== null">
+              <span *ngIf="gpt4Status === true" class="success">✓ Available</span>
+              <span *ngIf="gpt4Status === false" class="error">✗ Not Available</span>
+            </span>
+          </div>
+          
+          <div class="model-test">
+            <span>DALL-E 3 Access:</span>
+            <button class="test-model-btn" (click)="testDallE3Access()" [disabled]="isTestingDallE">
+              {{isTestingDallE ? 'Testing...' : 'Test DALL-E 3 Access'}}
+            </button>
+            <span class="model-status" *ngIf="dallEStatus !== null">
+              <span *ngIf="dallEStatus === true" class="success">✓ Available</span>
+              <span *ngIf="dallEStatus === false" class="error">✗ Not Available</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="model-error" *ngIf="modelErrorMessage">
+          <p>Error: {{modelErrorMessage}}</p>
+        </div>
+      </div>
+      
+      <div class="api-help-links" *ngIf="apiStatus === false">
+        <p><strong>Need help?</strong></p>
+        <ul>
+          <li><a href="https://platform.openai.com/signup" target="_blank">Create an OpenAI account</a></li>
+          <li><a href="https://platform.openai.com/api-keys" target="_blank">Manage your API keys</a></li>
+          <li><a href="https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4" target="_blank">How to access GPT-4</a></li>
+          <li><a href="https://help.openai.com/en/articles/8555510-dall-e-3-in-the-api" target="_blank">DALL-E 3 API guide</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

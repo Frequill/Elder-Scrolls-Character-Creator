@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
+
+.saved-container {  min-height: 100vh;
+  width: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../../assets/map-of-tamriel.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #e0e0e0;
+  font-family: 'EB Garamond', serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: rgba(20, 20, 20, 0.9);
+  
+  h1 {
+    color: #f8d87c;
+    margin: 0;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+}
+
+.back-btn, .home-btn {
+  background-color: transparent;
+  color: #c4c4c4;
+  border: 1px solid #6e5a30;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'EB Garamond', serif;
+  
+  &:hover {
+    background-color: rgba(118, 75, 40, 0.3);
+    color: #f8d87c;
+  }
+}
+
+.content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.character-card {
+  background-color: rgba(30, 30, 30, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  
+  &:hover {
+    transform: translateY(-5px);
+    border-color: #f8d87c;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(118, 75, 40, 0.7);
+  
+  h3 {
+    margin: 0;
+    color: #f8d87c;
+    font-size: 1.3rem;
+  }
+  
+  .delete-btn {
+    background-color: transparent;
+    border: none;
+    color: #e0e0e0;
+    font-size: 1.5rem;
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      color: #ff6b6b;
+    }
+  }
+}
+
+.character-image, .placeholder-image {
+  height: 180px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(20, 20, 20, 0.5);
+  overflow: hidden;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.placeholder-text {
+  font-size: 1.2rem;
+  color: #888;
+}
+
+.character-info {
+  padding: 1rem;
+  
+  .info-item {
+    margin-bottom: 0.5rem;
+    display: flex;
+    
+    .label {
+      width: 70px;
+      font-weight: 600;
+      color: #c4c4c4;
+    }
+    
+    .value {
+      flex: 1;
+    }
+  }
+}
+
+.no-characters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  
+  .message {
+    background-color: rgba(30, 30, 30, 0.8);
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 500px;
+    
+    h2 {
+      color: #f8d87c;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
+    
+    p {
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    
+    .create-btn {
+      background-color: #764b28;
+      color: #f8d87c;
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'EB Garamond', serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      
+      &:hover {
+        background-color: #8e5c32;
+        transform: translateY(-2px);
+      }
+      
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+  }
+}

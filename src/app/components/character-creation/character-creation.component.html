@@ -1,0 +1,200 @@
+<div class="creation-container">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">Back</button>
+    <h1>Character Creation</h1>
+    <button class="home-btn" (click)="returnToHome()">Home</button>
+  </div>
+  <!-- API Key Notification Banner -->
+  <div class="api-notification" *ngIf="!openaiService.getApiKey() || apiConnectionError">
+    <div class="notification-content">
+      <div class="notification-icon" [class.error]="apiConnectionError">!</div>
+      <div class="notification-message">
+        <p *ngIf="!openaiService.getApiKey()"><strong>OpenAI API Key Required</strong></p>
+        <p *ngIf="!openaiService.getApiKey()">AI character generation features require an OpenAI API key. Please add your key in the API Settings.</p>
+        
+        <p *ngIf="apiConnectionError"><strong>API Connection Issue</strong></p>
+        <p *ngIf="apiConnectionError">{{ apiErrorMessage || 'There was a problem connecting to the OpenAI API. This may be due to an invalid API key or billing issues.' }}</p>
+        
+        <p *ngIf="billingIssueDetected"><strong>Billing/Credits Issue Detected</strong></p>
+        <p *ngIf="billingIssueDetected">Your account may not have active billing or sufficient credits to use the API.</p>
+      </div>
+      <button class="api-settings-btn" (click)="navigateToApiSettings()">Configure API Key</button>
+    </div>
+  </div>
+  
+  <div class="content">
+    <!-- Step 1: Game Selection -->
+    <div *ngIf="creationStep === 1" class="step game-selection">
+      <h2>Select Your Game</h2>
+      <p>Choose which Elder Scrolls game you want to create a character for:</p>
+      
+      <div class="options-grid">
+        <div class="option" 
+             *ngFor="let game of games" 
+             (click)="selectGame(game)" 
+             [class.selected]="selectedGame === game"
+             tabindex="0"
+             role="button"
+             [attr.aria-label]="'Select ' + game + ' game'">
+          <div class="option-image">
+            <img [src]="'../../../assets/' + game + '-logo.jpg'" 
+                 [alt]="game + ' logo'" 
+                 class="game-logo" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+          </div>
+          <h3>{{ game }}</h3>
+          <p>Create a character for {{ game }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Step 2: Race Selection -->
+    <div *ngIf="creationStep === 2" class="step race-selection">
+      <h2>Select Your Race</h2>
+      <p>Choose your character's race:</p>
+      
+      <div class="options-grid">
+        <div class="option" 
+             *ngFor="let race of races" 
+             (click)="selectRace(race)" 
+             [class.selected]="selectedRace === race"
+             tabindex="0"
+             role="button"
+             [attr.aria-label]="'Select ' + race.name + ' race'">
+          <div class="option-image">
+            <img [src]="'../../../assets/races/' + race.name.toLowerCase().replace(' ', '-').replace('(', '').replace(')', '') + '.jpg'" 
+                 [alt]="race.name + ' image'" 
+                 class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+          </div>
+          <h3>{{ race.name }}</h3>
+          <p>{{ race.description }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Step 3: Character Options Selection -->
+    <div *ngIf="creationStep === 3" class="step character-options-selection">
+      <h2>Define Your Character</h2>
+      <p>Choose your character's traits to generate a custom class:</p>
+      
+      <div class="options-container">
+        <!-- Age Selection -->
+        <div class="option-group">
+          <h3>Age</h3>
+          <div class="options-list">
+            <div *ngFor="let ageOption of ageOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.age === ageOption"
+                 (click)="selectAge(ageOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.age === ageOption"
+                 [attr.aria-label]="'Select age: ' + ageOption">
+              {{ ageOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Specialization Selection -->
+        <div class="option-group">
+          <h3>Specialization</h3>
+          <div class="options-list">
+            <div *ngFor="let specializationOption of specializationOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.specialization === specializationOption"
+                 (click)="selectSpecialization(specializationOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.specialization === specializationOption"
+                 [attr.aria-label]="'Select specialization: ' + specializationOption">
+              {{ specializationOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Armor Selection -->
+        <div class="option-group">
+          <h3>Armor Preference</h3>
+          <div class="options-list">
+            <div *ngFor="let armorOption of armorOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.armor === armorOption"
+                 (click)="selectArmor(armorOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.armor === armorOption"
+                 [attr.aria-label]="'Select armor type: ' + armorOption">
+              {{ armorOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Weapon Selection (Multi-select) -->
+        <div class="option-group">
+          <h3>Preferred Weapons</h3>
+          <p class="option-hint">Select one or more</p>
+          <div class="options-list">
+            <div *ngFor="let weaponOption of weaponOptions" 
+                 class="option-item" 
+                 [class.selected]="isWeaponSelected(weaponOption)"
+                 (click)="toggleWeaponSelection(weaponOption)"
+                 tabindex="0"
+                 role="checkbox"
+                 [attr.aria-checked]="isWeaponSelected(weaponOption)"
+                 [attr.aria-label]="weaponOption">
+              {{ weaponOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Background Selection -->
+        <div class="option-group">
+          <h3>Background</h3>
+          <div class="options-list">
+            <div *ngFor="let backgroundOption of backgroundOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.background === backgroundOption"
+                 (click)="selectBackground(backgroundOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.background === backgroundOption"
+                 [attr.aria-label]="'Select background: ' + backgroundOption">
+              {{ backgroundOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Prestige Selection -->
+        <div class="option-group">
+          <h3>Prestige</h3>
+          <div class="options-list">
+            <div *ngFor="let prestigeOption of prestigeOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.prestige === prestigeOption"
+                 (click)="selectPrestige(prestigeOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.prestige === prestigeOption"
+                 [attr.aria-label]="'Select prestige: ' + prestigeOption">
+              {{ prestigeOption }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Generate Class Button -->
+      <div class="generate-class-container">
+        <button class="generate-btn" 
+                [disabled]="!isCharacterOptionsComplete()" 
+                (click)="generateClass()"
+                [attr.aria-busy]="isGeneratingClass">
+          {{ isGeneratingClass ? 'Generating...' : 'Generate Class' }}
+        </button>
+        <div class="incomplete-message" *ngIf="!isCharacterOptionsComplete()">
+          Please complete all selections to continue
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
