@@ -1,24 +1,15 @@
-/**
- * Elder Scrolls games available in the application
- */
 export enum Game {
   Morrowind = 'Morrowind',
   Oblivion = 'Oblivion',
   Skyrim = 'Skyrim'
 }
 
-/**
- * Character race definition
- */
 export interface Race {
   name: string;
   description: string;
   gameAvailability: Game[];
 }
 
-/**
- * Character class definition 
- */
 export interface CharacterClass {
   name: string;
   description: string;
@@ -26,14 +17,12 @@ export interface CharacterClass {
   gameAvailability: Game[];
 }
 
-/**
- * Complete character data
- */
 export interface Character {
   name?: string;
   race: Race;
   class: CharacterClass;
   game: Game;
+  sex?: string;
   backstory?: string;
   imageUrl?: string;
 }
@@ -42,6 +31,7 @@ export interface Character {
  * Options for custom character class generation
  */
 export interface CharacterOptions {
+  sex: string;
   age: string;
   specialization: string;
   armor: string;
@@ -50,11 +40,11 @@ export interface CharacterOptions {
   prestige: string;
 }
 
-// Character Creation Options Constants
+export const SEX_OPTIONS = [
+  'Male',
+  'Female'
+];
 
-/**
- * Age options for character creation
- */
 export const AGE_OPTIONS = [
   'Young Adult',
   'Adult',
@@ -62,29 +52,18 @@ export const AGE_OPTIONS = [
   'Elder'
 ];
 
-/**
- * Specialization options for character creation
- */
 export const SPECIALIZATION_OPTIONS = [
   'Combat',
   'Magic',
   'Stealth'
 ];
 
-/**
- * Armor options by game for character creation
- * Note: Only Morrowind includes Medium armor
- */
 export const ARMOR_OPTIONS = {
   [Game.Morrowind]: ['Heavy', 'Medium', 'Light'],
   [Game.Oblivion]: ['Heavy', 'Light'],
   [Game.Skyrim]: ['Heavy', 'Light']
 };
 
-/**
- * Weapon options by game for character creation
- * Note: Game-specific weapon types are included
- */
 export const WEAPON_OPTIONS = {
   [Game.Morrowind]: [
     'One-handed Sword', 
@@ -133,19 +112,11 @@ export const BACKGROUND_OPTIONS = [
   'Farmer'
 ];
 
-/**
- * Prestige options for character creation
- */
 export const PRESTIGE_OPTIONS = [
   'Unknown',
   'Famous'
 ];
 
-// Pre-defined Races and Classes
-
-/**
- * Common races across Elder Scrolls games
- */
 export const RACES: Race[] = [
   {
     name: 'Altmer (High Elf)',

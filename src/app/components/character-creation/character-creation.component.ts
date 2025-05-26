@@ -9,6 +9,7 @@ import {
   CharacterClass, 
   Character, 
   CharacterOptions,
+  SEX_OPTIONS,
   AGE_OPTIONS,
   SPECIALIZATION_OPTIONS,
   ARMOR_OPTIONS,
@@ -26,31 +27,26 @@ import { OpenaiService } from '../../services/openai.service';
   styleUrl: './character-creation.component.scss'
 })
 export class CharacterCreationComponent implements OnInit {
-  // Game selection options
   games = Object.values(Game);
   selectedGame: Game | null = null;
   
-  // API connection status
   apiConnectionError: boolean = false;
   apiErrorMessage: string = '';
   billingIssueDetected: boolean = false;
   
-  // Race selection options 
   races: Race[] = [];
   selectedRace: Race | null = null;
+    creationStep = 1;
   
-  // Creation steps: 1 = Game Selection, 2 = Race Selection, 3 = Character Options
-  creationStep = 1;
-  
-  // Character options for class generation
+  sexOptions = SEX_OPTIONS;
   ageOptions = AGE_OPTIONS;
   specializationOptions = SPECIALIZATION_OPTIONS;
   armorOptions: string[] = [];
   weaponOptions: string[] = [];
   backgroundOptions = BACKGROUND_OPTIONS;
   prestigeOptions = PRESTIGE_OPTIONS;
-  
-  characterOptions: CharacterOptions = {
+    characterOptions: CharacterOptions = {
+    sex: '',
     age: '',
     specialization: '',
     armor: '',
@@ -67,37 +63,33 @@ export class CharacterCreationComponent implements OnInit {
   ) {}  ngOnInit(): void {
     this.characterService.clearCurrentCharacter();
     
-    // Check if API key is set
-    // We don't automatically redirect to avoid an endless loop if user comes back
-    // Instead we show the notification banner to make it clear API key is needed
+    // Check API key status and display banner if needed
     const apiKey = this.openaiService.getApiKey();
     if (!apiKey) {
       console.warn('No OpenAI API key found. Some features will be limited.');
     } else {
-      // If API key exists, test connectivity silently in the background
+      // Verify API key validity in the background
       this.openaiService.testConnection().subscribe({
         next: (result) => {
           if (!result.success) {
-            // We have an API key but it's not working
             this.apiConnectionError = true;
             this.apiErrorMessage = result.message || 'There was a problem connecting to the OpenAI API.';
           } else if (result.hasBilling === false) {
-            // API key is valid but no billing/credits detected
             this.apiConnectionError = true;
             this.billingIssueDetected = true;
             this.apiErrorMessage = 'Your API key is valid, but no active billing or credits were detected.';
           }
         },
         error: (err) => {
-          // Don't show error UI on silent check
           console.error('API connectivity check failed:', err);
         }
       });
     }
   }
-
   /**
-   * Step 1: Select the game and prepare for race selection
+   * Updates available races and options based on the selected game
+   * 
+   * @param game The selected Elder Scrolls game
    */
   selectGame(game: Game): void {
     this.selectedGame = game;
@@ -110,6 +102,7 @@ export class CharacterCreationComponent implements OnInit {
     
     // Reset character options
     this.characterOptions = {
+      sex: '',
       age: '',
       specialization: '',
       armor: '',
@@ -123,28 +116,46 @@ export class CharacterCreationComponent implements OnInit {
 
   /**
    * Step 2: Select the race and proceed to character options
-   */
-  selectRace(race: Race): void {
+   * 
+   * @param race The selected character race
+   */  selectRace(race: Race): void {
     this.selectedRace = race;
     this.creationStep = 3;
   }
-  
-  // Character options selection methods
+    
+  /**
+   * Sets the character's biological sex
+   * @param sex Selected biological sex
+   */
+  selectSex(sex: string): void {
+    this.characterOptions.sex = sex;
+  }
+    
+  /**
+   * Sets the character's age
+   * @param age Selected age group
+   */
   selectAge(age: string): void {
     this.characterOptions.age = age;
   }
   
+  /**
+   * Sets the character's specialization
+   * @param specialization Selected specialization category
+   */
   selectSpecialization(specialization: string): void {
     this.characterOptions.specialization = specialization;
   }
-  
-  selectArmor(armor: string): void {
+    selectArmor(armor: string): void {
     this.characterOptions.armor = armor;
   }
   
+  /**
+   * Toggles weapon selection state
+   */
   toggleWeaponSelection(weapon: string): void {
     if (this.isWeaponSelected(weapon)) {
-      // Remove weapon if already selected
+      // Remove if selected
       this.characterOptions.weapons = this.characterOptions.weapons.filter(w => w !== weapon);
     } else {
       // Add weapon if not selected
@@ -152,11 +163,16 @@ export class CharacterCreationComponent implements OnInit {
     }
   }
   
+  /**
+   * Checks if a weapon is currently selected
+   * 
+   * @param weapon The weapon to check
+   * @returns true if the weapon is selected
+   */
   isWeaponSelected(weapon: string): boolean {
     return this.characterOptions.weapons.includes(weapon);
   }
-  
-  selectBackground(background: string): void {
+    selectBackground(background: string): void {
     this.characterOptions.background = background;
   }
   
@@ -165,10 +181,10 @@ export class CharacterCreationComponent implements OnInit {
   }
   
   /**
-   * Check if all character options are selected
-   */
-  isCharacterOptionsComplete(): boolean {
+   * Validates if all character options are selected
+   */  isCharacterOptionsComplete(): boolean {
     return (
+      !!this.characterOptions.sex &&
       !!this.characterOptions.age &&
       !!this.characterOptions.specialization &&
       !!this.characterOptions.armor &&
@@ -177,53 +193,45 @@ export class CharacterCreationComponent implements OnInit {
       !!this.characterOptions.prestige
     );
   }
+  
   /**
-   * Generate a class based on character options
+   * Generates a character class based on the selected options
+   * Uses OpenAI API to create a custom class with appropriate skills
    */
   generateClass(): void {
     if (!this.selectedGame || !this.selectedRace || !this.isCharacterOptionsComplete()) {
       return;
     }
     
-    // Reset any previous error states
+    // Reset error states
     this.apiConnectionError = false;
     this.apiErrorMessage = '';
     this.billingIssueDetected = false;
     
-    // Check if API key is set
     if (!this.openaiService.getApiKey()) {
-      // No alert anymore - we'll show the notification banner
       this.apiConnectionError = true;
       this.apiErrorMessage = 'OpenAI API key is required for character generation.';
       return;
     }
     
     this.isGeneratingClass = true;
-    
-    this.openaiService.generateCharacterClass(this.selectedGame, this.selectedRace, this.characterOptions)
+      this.openaiService.generateCharacterClass(this.selectedGame, this.selectedRace, this.characterOptions)
       .subscribe({
-        next: (generatedClass: CharacterClass) => {
-          // Create character object
-          const character: Character = {
+        next: (generatedClass: CharacterClass) => {          const character: Character = {
             race: this.selectedRace!,
             class: generatedClass,
-            game: this.selectedGame!
+            game: this.selectedGame!,
+            sex: this.characterOptions.sex
           };
           
           this.characterService.setCurrentCharacter(character);
           this.isGeneratingClass = false;
-          
-          // Navigate to character details page
           this.router.navigate(['/character-details']);
         },
         error: (error: any) => {
           console.error('Error generating class:', error);
-          this.isGeneratingClass = false;
+          this.isGeneratingClass = false;          this.apiConnectionError = true;
           
-          // Check for specific error types
-          this.apiConnectionError = true;
-          
-          // Detect possible billing issues
           if (error.message && (
               error.message.toLowerCase().includes('billing') ||
               error.message.toLowerCase().includes('quota') ||
@@ -239,18 +247,18 @@ export class CharacterCreationComponent implements OnInit {
             this.apiErrorMessage = error.message || 'An error occurred connecting to the OpenAI API.';
           }
           
-          // Fallback: Create a basic class
+          // Create fallback class for offline use
           const fallbackClass: CharacterClass = {
             name: 'Adventurer',
             description: 'A versatile character skilled in various abilities.',
             skills: ['Survival', 'Combat', 'Adaptability'],
             gameAvailability: [this.selectedGame!]
           };
-          
-          const character: Character = {
+            const character: Character = {
             race: this.selectedRace!,
             class: fallbackClass,
-            game: this.selectedGame!
+            game: this.selectedGame!,
+            sex: this.characterOptions.sex
           };
           
           this.characterService.setCurrentCharacter(character);
@@ -258,10 +266,6 @@ export class CharacterCreationComponent implements OnInit {
         }
       });
   }
-
-  /**
-   * Navigation: Go back to previous step or home
-   */
   goBack(): void {
     if (this.creationStep > 1) {
       this.creationStep--;
@@ -270,16 +274,10 @@ export class CharacterCreationComponent implements OnInit {
     }
   }
 
-  /**
-   * Navigate to the API settings page
-   */
   navigateToApiSettings(): void {
     this.router.navigate(['/api-settings']);
   }
   
-  /**
-   * Return to the home page
-   */
   returnToHome(): void {
     this.router.navigate(['/']);
   }

@@ -66,7 +66,7 @@ export class CharacterDetailsComponent implements OnInit {
       this.openaiService.testConnection().subscribe({
         next: (result) => {
           if (!result.success) {
-            // We have an API key but it's not working
+            // API key exists but does not work
             this.apiConnectionError = true;
             this.apiErrorMessage = result.message || 'There was a problem connecting to the OpenAI API.';
           }
@@ -76,13 +76,21 @@ export class CharacterDetailsComponent implements OnInit {
         }
       });
     }
-  }
+  }  /**
+   * Updates the character name when changed by the user
+   */
   updateName(): void {
     if (this.character && this.characterName.trim()) {
       this.character.name = this.characterName.trim();
       this.characterService.setCurrentCharacter(this.character);
     }
-  }  generateBackstory(): void {
+  }
+  
+  /**
+   * Generates a backstory for the current character using OpenAI API
+   * Handles API errors and billing issues
+   */
+  generateBackstory(): void {
     if (!this.character) return;
     
     // Reset error states
@@ -122,10 +130,15 @@ export class CharacterDetailsComponent implements OnInit {
           this.backstoryApiError = 'Authentication failed: Your API key may be invalid.';
         } else {
           this.backstoryApiError = 'API Error: ' + (error.message || 'Failed to generate backstory.');
-        }
-      }
+        }      }
     });
-  }  generateImage(): void {
+  }
+  
+  /**
+   * Generates a character portrait image using OpenAI's DALL-E model
+   * Handles API errors, billing issues, and uses a placeholder if needed
+   */
+  generateImage(): void {
     if (!this.character) return;
     
     // Reset error states
@@ -166,12 +179,16 @@ export class CharacterDetailsComponent implements OnInit {
         } else {
           this.imageApiError = 'API Error: ' + (error.message || 'Failed to generate image.');
         }
-        
-        // Use placeholder image
-        this.characterImage = '/assets/placeholder-character.png';
       }
     });
-  }  saveCharacter(): void {
+  }
+  
+  /**
+   * Saves the current character to local storage
+   * Ensures character has a name before saving
+   * Shows a temporary confirmation message
+   */
+  saveCharacter(): void {
     if (!this.character) return;
     
     if (!this.character.name && this.characterName.trim()) {
@@ -185,11 +202,18 @@ export class CharacterDetailsComponent implements OnInit {
       this.isSaved = false;
     }, 2000);
   }
-
+  /**
+   * Clears the current character and navigates to character creation
+   */
   createNewCharacter(): void {
     this.characterService.clearCurrentCharacter();
     this.router.navigate(['/create-character']);
-  }  returnToHome(): void {
+  }
+  
+  /**
+   * Navigates back to the home page
+   */
+  returnToHome(): void {
     this.router.navigate(['/']);
   }
   

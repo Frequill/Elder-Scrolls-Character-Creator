@@ -31,7 +31,9 @@ export class ApiSettingsComponent implements OnInit {
     private openaiService: OpenaiService,
     private http: HttpClient
   ) {}
-
+  /**
+   * Initializes the component and loads any saved API key
+   */
   ngOnInit(): void {
     // Load saved API key if available
     const savedKey = this.openaiService.getApiKey();
@@ -39,10 +41,19 @@ export class ApiSettingsComponent implements OnInit {
       this.apiKey = savedKey;
     }
   }
-
+  
+  /**
+   * Toggles the visibility of the API key in the input field
+   */
   toggleApiKeyVisibility(): void {
     this.showApiKey = !this.showApiKey;
-  }  apiErrorMessage: string = '';
+  }
+  
+  apiErrorMessage: string = '';
+    /**
+   * Tests the API connection with the entered key
+   * Validates the API key format, saves it, and tests the connection
+   */
   testApiConnection(): void {
     const trimmedKey = this.apiKey.trim();
     
@@ -94,6 +105,10 @@ export class ApiSettingsComponent implements OnInit {
       }
     });
   }
+  
+  /**
+   * Navigates back to the home page
+   */
   returnToHome(): void {
     this.router.navigate(['/']);
   }
@@ -101,11 +116,16 @@ export class ApiSettingsComponent implements OnInit {
   /**
    * Validates that the provided string looks like an OpenAI API key
    * OpenAI API keys typically start with 'sk-' and are 51 characters long
+   * 
+   * @param key The API key to validate
+   * @returns true if the key matches the expected format
    */
   private isValidOpenAIKey(key: string): boolean {
     // Check if the key starts with 'sk-' and is the right length
     return key.startsWith('sk-') && key.length >= 40;
-  }  /**
+  }
+  
+  /**
    * Clear the API key from input field and storage
    */
   clearApiKey(): void {
@@ -118,9 +138,9 @@ export class ApiSettingsComponent implements OnInit {
     this.modelErrorMessage = '';
     this.openaiService.clearApiKey();
   }
-
   /**
-   * Test access to GPT-4 model
+   * Tests access to GPT-4 model with the current API key
+   * Makes a minimal API request to verify model availability
    */
   testGpt4Access(): void {
     if (!this.apiKey) {
@@ -142,13 +162,12 @@ export class ApiSettingsComponent implements OnInit {
       messages: [
         {
           role: "user",
-          content: "Hello, this is a model test."
+          content: "Test model access"
         }
       ],
       max_tokens: 5
     };
     
-    // Inject HttpClient and make the request directly
     this.http.post<any>('https://api.openai.com/v1/chat/completions', body, { headers }).subscribe({
       next: (response) => {
         this.gpt4Status = true;
@@ -167,9 +186,9 @@ export class ApiSettingsComponent implements OnInit {
       }
     });
   }
-  
-  /**
-   * Test access to DALL-E 3 model
+    /**
+   * Tests access to DALL-E 3 model with the current API key
+   * Makes a minimal API request to verify model availability
    */
   testDallE3Access(): void {
     if (!this.apiKey) {
@@ -185,8 +204,8 @@ export class ApiSettingsComponent implements OnInit {
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${this.apiKey}`);
     
-    // Test DALL-E 3 access with a minimal request that won't generate a full image
-    // We're just checking model access, not actually generating an image
+    // Test DALL-E 3 access with a minimal request
+    // Using quality "standard" and a simple prompt to minimize costs
     const body = {
       model: "dall-e-3",
       prompt: "Test access to DALL-E 3",

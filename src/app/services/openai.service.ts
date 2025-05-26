@@ -11,32 +11,54 @@ export class OpenaiService {
   private apiKey: string = '';
   private chatCompletionsUrl = 'https://api.openai.com/v1/chat/completions';
   private imageGenerationUrl = 'https://api.openai.com/v1/images/generations';
-
+  /**
+   * Initializes the service and loads the API key from local storage if available
+   * @param http The Angular HttpClient for API communication
+   */
   constructor(private http: HttpClient) { 
-    // Try to load API key from localStorage
+    this.loadApiKeyFromStorage();
+  }
+  
+  /**
+   * Loads saved API key from localStorage if available
+   * @private
+   */
+  private loadApiKeyFromStorage(): void {
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       this.apiKey = savedApiKey;
     }
   }
-  
-  // Set and store API key
+    /**
+   * Sets and stores the API key in local storage
+   * @param key The OpenAI API key to store
+   */
   setApiKey(key: string): void {
     this.apiKey = key;
     localStorage.setItem('openai_api_key', key);
   }
   
-  // Get current API key
+  /**
+   * Retrieves the current API key
+   * @returns The currently set API key
+   */
   getApiKey(): string {
     return this.apiKey;
   }
   
-  // Clear API key
+  /**
+   * Clears the API key from memory and local storage
+   */
   clearApiKey(): void {
     this.apiKey = '';
     localStorage.removeItem('openai_api_key');
   }
-  // Test API connection and check billing status
+  /**
+ * Tests the API connection and checks billing status.
+ * Validates API key functionality and billing status by making a minimal request.
+ * 
+ * @returns Observable with the test results, including success status, message, and billing status
+ */
   testConnection(): Observable<{success: boolean, message?: string, hasBilling?: boolean}> {
     if (!this.apiKey) {
       return of({success: false, message: 'No API key provided'});
@@ -49,7 +71,7 @@ export class OpenaiService {
       messages: [
         {
           role: "user",
-          content: "Hello, this is a test message to verify API connection."
+          content: "Test message to verify API connection."
         }
       ],
       max_tokens: 10
@@ -57,11 +79,9 @@ export class OpenaiService {
     
     return this.http.post<any>(this.chatCompletionsUrl, body, { headers }).pipe(
       map(response => {
-        console.log('API test successful:', response);
-        // Check if we got a valid response with expected structure
+        // Check if the response has the expected structure
         if (response && response.choices && response.choices.length > 0) {
-          // If we received a successful response, it means both the API key is valid 
-          // and there is active billing/sufficient credits on the account
+          // Successful response indicates valid API key and active billing/credits
           return {success: true, hasBilling: true, message: 'Connection successful with valid billing'};
         } else {
           // Unexpected response format
@@ -104,7 +124,14 @@ export class OpenaiService {
       })
     );
   }
-    // Generate character class and description
+  /**
+   * Generates a character class and description based on provided parameters
+   * 
+   * @param game The selected Elder Scrolls game
+   * @param race The selected character race
+   * @param options Additional character options
+   * @returns An Observable with the generated CharacterClass
+   */
   generateCharacterClass(game: Game, race: Race, options: CharacterOptions): Observable<CharacterClass> {
     if (!this.apiKey) {
       return of(this.getFallbackClass(game));
@@ -147,43 +174,64 @@ export class OpenaiService {
       catchError(error => {
         console.error('Error generating class:', error);
         
-        // Enhanced error handling to provide more specific error messages
-        let errorMessage = '';
-        if (error.error && error.error.error) {
-          errorMessage = error.error.error.message || error.error.error.type;
-          
-          // Handle specific OpenAI error types
-          if (error.error.error.type === 'insufficient_quota' || 
-              errorMessage.includes('billing') || 
-              errorMessage.includes('quota')) {
-            throw new Error('Billing or quota exceeded: ' + errorMessage);
-          } else if (error.status === 401) {
-            throw new Error('Authentication failed: Your API key may be invalid.');
-          } else if (error.status === 429) {
-            throw new Error('Rate limit exceeded: Too many requests or exceeded quota. Please check your billing status.');
-          }
-        }
-        
-        // Fallback with generic error if no specific error was identified
+        // Extract and format error message
+        let errorMessage = this.extractErrorMessage(error);
         throw new Error(errorMessage || 'Failed to generate character class');
       })
     );
   }
-  // Generate character backstory
-  generateBackstory(character: Character): Observable<string> {
+  
+  /**
+   * Extracts error messages from OpenAI API errors with consistent formatting
+   * 
+   * @param error The error response from OpenAI API
+   * @returns A formatted error message
+   * @private
+   */
+  private extractErrorMessage(error: any): string {
+    let errorMessage = '';
+    
+    if (error.error && error.error.error) {
+      errorMessage = error.error.error.message || error.error.error.type;
+      
+      // Handle specific OpenAI error types
+      if (error.error.error.type === 'insufficient_quota' || 
+          errorMessage.toLowerCase().includes('billing') || 
+          errorMessage.toLowerCase().includes('quota')) {
+        return 'Billing or quota exceeded: ' + errorMessage;
+      } else if (error.status === 401) {
+        return 'Authentication failed: Your API key may be invalid.';
+      } else if (error.status === 429) {
+        return 'Rate limit exceeded: Too many requests or exceeded quota. Please check your billing status.';
+      }
+    }
+    
+    return errorMessage;
+  }  /**
+   * Generates a character backstory based on character details
+   * 
+   * @param character The character object with race, class, and game information
+   * @returns An Observable with the generated backstory text
+   */  generateBackstory(character: Character): Observable<string> {
     if (!this.apiKey) {
       return of(`${character.race.name} ${character.class.name} from ${character.game} has a mysterious past...`);
     }
     
     const headers = this.getHeaders();
     
+    // Get the biological sex from character options if available
+    const characterSex = character.sex || 'Male'; // Default to Male if not specified
+    
     const prompt = `Create a detailed backstory for an Elder Scrolls character with the following details:
       - Game: ${character.game}
       - Race: ${character.race.name}
+      - Biological Sex: ${characterSex}
       - Class: ${character.class.name}
       - Skills: ${character.class.skills.join(', ')}
       
-      Please write a first-person narrative of this character's origin, motivations, and how they came to be an adventurer in the world of ${character.game}. Keep the backstory lore-friendly to the Elder Scrolls universe.`;
+      Please write a first-person narrative of this character's origin, motivations, and how they came to be an adventurer in the world of ${character.game}. 
+      Make sure the backstory reflects the character's biological sex.
+      Keep the backstory lore-friendly to the Elder Scrolls universe.`;
     
     const body = {
       model: "gpt-4",
@@ -204,39 +252,28 @@ export class OpenaiService {
       map(response => response.choices[0].message.content),
       catchError(error => {
         console.error('Error generating backstory:', error);
-        
-        // Enhanced error handling to check for specific errors
-        let errorMessage = '';
-        if (error.error && error.error.error) {
-          errorMessage = error.error.error.message || error.error.error.type;
-          
-          // Handle specific OpenAI error types
-          if (error.error.error.type === 'insufficient_quota' || 
-              errorMessage.includes('billing') || 
-              errorMessage.includes('quota')) {
-            throw new Error('Billing or quota exceeded: ' + errorMessage);
-          } else if (error.status === 401) {
-            throw new Error('Authentication failed: Your API key may be invalid.');
-          } else if (error.status === 429) {
-            throw new Error('Rate limit exceeded: Too many requests or exceeded quota. Please check your billing status.');
-          }
-        }
-        
-        // If we can't determine a specific error, throw a generic one
+        const errorMessage = this.extractErrorMessage(error);
         throw new Error(errorMessage || 'Failed to generate character backstory');
       })
     );
   }
-    // Generate character image
-  generateCharacterImage(character: Character): Observable<string> {
+  /**
+   * Generates a character portrait image using DALL-E 3
+   * 
+   * @param character The character object with race, class, and game information
+   * @returns An Observable with the generated image URL
+   */  generateCharacterImage(character: Character): Observable<string> {
     if (!this.apiKey) {
       return of('/assets/placeholder-character.png');
     }
     
     const headers = this.getHeaders();
     
-    const prompt = `A detailed portrait of an Elder Scrolls ${character.race.name} ${character.class.name} from ${character.game}, 
-      fantasy style, high detail, in-game style, character portrait`;
+    const prompt = `A detailed upper body portrait of a ${character.sex || 'Male'} ${character.race.name} ${character.class.name} from ${character.game}. 
+      The image must be in the exact art style of ${character.game} and look like it could be a character created in the actual ${character.game} game. 
+      The character must have no headgear or helmet so their face is clearly visible. 
+      Face should be the focus with good lighting to see details. 
+      The image should accurately represent ${character.game}'s visual style and the ${character.race.name} race's distinctive features.`;
     
     const body = {
       model: "dall-e-3",
@@ -249,40 +286,35 @@ export class OpenaiService {
       map(response => response.data[0].url),
       catchError(error => {
         console.error('Error generating image:', error);
-        
-        // Enhanced error handling for image generation
-        let errorMessage = '';
-        if (error.error && error.error.error) {
-          errorMessage = error.error.error.message || error.error.error.type;
-          
-          // Handle specific OpenAI error types
-          if (error.error.error.type === 'insufficient_quota' || 
-              errorMessage.includes('billing') || 
-              errorMessage.includes('quota')) {
-            throw new Error('Billing or quota exceeded: ' + errorMessage);
-          } else if (error.status === 401) {
-            throw new Error('Authentication failed: Your API key may be invalid.');
-          } else if (error.status === 429) {
-            throw new Error('Rate limit exceeded: Too many requests or exceeded quota. Please check your billing status.');
-          }
-        }
-        
-        // Throw a more specific error
+        const errorMessage = this.extractErrorMessage(error);
         throw new Error(errorMessage || 'Failed to generate character image');
       })
     );
   }
-  
-  // Helper methods
+    /**
+   * Creates HTTP headers with authorization for OpenAI API requests
+   * 
+   * @returns HttpHeaders object with Content-Type and Authorization
+   * @private
+   */
   private getHeaders(): HttpHeaders {
     return new HttpHeaders()
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${this.apiKey}`);
   }
   
-  private buildCharacterPrompt(game: Game, race: Race, options: CharacterOptions): string {
+  /**
+   * Constructs a prompt for character class generation based on user selections
+   * 
+   * @param game The selected Elder Scrolls game
+   * @param race The selected character race
+   * @param options Additional character options
+   * @returns A formatted prompt string for the AI
+   * @private
+   */  private buildCharacterPrompt(game: Game, race: Race, options: CharacterOptions): string {
     return `Create a custom Elder Scrolls character class for ${game} with the following details:
       - Race: ${race.name}
+      - Biological Sex: ${options.sex}
       - Age: ${options.age}
       - Specialization: ${options.specialization}
       - Armor Preference: ${options.armor}
@@ -299,6 +331,13 @@ export class OpenaiService {
       }`;
   }
   
+  /**
+   * Provides a fallback character class when API is unavailable
+   * 
+   * @param game The selected Elder Scrolls game
+   * @returns A basic CharacterClass object
+   * @private
+   */
   private getFallbackClass(game: Game): CharacterClass {
     return {
       name: 'Adventurer',

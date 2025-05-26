@@ -34,14 +34,12 @@
              (click)="selectGame(game)" 
              [class.selected]="selectedGame === game"
              tabindex="0"
-             role="button"
-             [attr.aria-label]="'Select ' + game + ' game'">
-          <div class="option-image">
-            <img [src]="'../../../assets/' + game + '-logo.jpg'" 
-                 [alt]="game + ' logo'" 
-                 class="game-logo" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-          </div>
+             role="button"             [attr.aria-label]="'Select ' + game + ' game'">             <div class="option-image">
+               <img [src]="'../../../assets/' + game + '-logo.jpg'" 
+                    [alt]="game + ' logo'" 
+                    class="game-logo" 
+                    onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+             </div>
           <h3>{{ game }}</h3>
           <p>Create a character for {{ game }}</p>
         </div>
@@ -62,9 +60,35 @@
              role="button"
              [attr.aria-label]="'Select ' + race.name + ' race'">
           <div class="option-image">
-            <img [src]="'../../../assets/races/' + race.name.toLowerCase().replace(' ', '-').replace('(', '').replace(')', '') + '.jpg'" 
-                 [alt]="race.name + ' image'" 
-                 class="race-image" 
+            <img *ngIf="race.name === 'Altmer (High Elf)'" src="../../../assets/races/altmer-high-elf-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Argonian'" src="../../../assets/races/argonian-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Bosmer (Wood Elf)'" src="../../../assets/races/bosmer-wood-elf-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Breton'" src="../../../assets/races/breton-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Dunmer (Dark Elf)'" src="../../../assets/races/dunmer-dark-elf-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Imperial'" src="../../../assets/races/imperial-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Khajiit'" src="../../../assets/races/khajiit-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Nord'" src="../../../assets/races/nord-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Orc'" src="../../../assets/races/orc-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
+                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+            <img *ngIf="race.name === 'Redguard'" src="../../../assets/races/redguard-img.jpg"
+                 [alt]="race.name + ' image'" class="race-image" 
                  onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
           </div>
           <h3>{{ race.name }}</h3>
@@ -73,12 +97,28 @@
       </div>
     </div>
     
-    <!-- Step 3: Character Options Selection -->
-    <div *ngIf="creationStep === 3" class="step character-options-selection">
+    <!-- Step 3: Character Options Selection -->    <div *ngIf="creationStep === 3" class="step character-options-selection">
       <h2>Define Your Character</h2>
       <p>Choose your character's traits to generate a custom class:</p>
       
       <div class="options-container">
+        <!-- Biological Sex Selection -->
+        <div class="option-group">
+          <h3>Biological Sex</h3>
+          <div class="options-list">
+            <div *ngFor="let sexOption of sexOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.sex === sexOption"
+                 (click)="selectSex(sexOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.sex === sexOption"
+                 [attr.aria-label]="'Select biological sex: ' + sexOption">
+              {{ sexOption }}
+            </div>
+          </div>
+        </div>
+        
         <!-- Age Selection -->
         <div class="option-group">
           <h3>Age</h3>
