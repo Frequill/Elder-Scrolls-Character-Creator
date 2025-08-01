@@ -26,10 +26,6 @@ Also, at this point this *should* work on your mobile device of choice... but I 
 ### Installation
 
 1. Clone the repository
-```bash
-git "putSomeDumbassCommandForCloningThisHereInFutureWoooooo"
-cd elder-scrolls-character-creator
-```
 
 2. Install dependencies
 ```bash
@@ -38,23 +34,10 @@ npm install
 
 3. Start the development server
 ```bash
-npm start (ng serve is for boomers)
+npm start
 ```
 
-4. Open your browser and navigate to `http://localhost:4200`
-
-## Development
-
-### Asset Management
-
-Assets are stored in the `src/assets` directory and are automatically included in the build process through Angular's asset configuration.
-More or less everything is/are placeholder/placeholders for the time being. Who needs images when you can write logic... x)
-
-### Available Scripts
-
-- `npm start` - Start the development server
-- `npm run build` - Build the application for production
-- `npm test` - Placeholder for future test implementation
+4. Open your browser and navigate to `localhost:4200`
 
 ## Testing
 
