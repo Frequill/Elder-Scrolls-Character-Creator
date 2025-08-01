@@ -1,0 +1,217 @@
+/* Elder Scrolls Theme Variables */
+:root {
+  --es-gold: #f8d87c;
+  --es-brown: #764b28;
+  --es-dark-brown: #6e5a30;
+  --es-accent-brown: #8e5c32;
+  --es-dark-bg: #121212;
+  --es-panel-bg: rgba(30, 30, 30, 0.8);
+  --es-text-light: #e0e0e0;
+  --es-text-white: #ffffff;
+  --es-text-muted: #c4c4c4;
+  --es-border-radius: 4px;
+  --es-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --es-transition: all 0.3s ease;
+}
+
+/* Common Elder Scrolls UI Components */
+@mixin es-button-base {
+  font-family: 'EB Garamond', serif;
+  cursor: pointer;
+  transition: var(--es-transition);
+  border-radius: var(--es-border-radius);
+  border: 1px solid var(--es-dark-brown);
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin es-button-primary {
+  @include es-button-base;
+  background-color: var(--es-brown);
+  color: var(--es-gold);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  
+  &:hover:not(:disabled) {
+    background-color: var(--es-accent-brown);
+    box-shadow: 0 2px 8px rgba(118, 75, 40, 0.3);
+  }
+}
+
+@mixin es-button-secondary {
+  @include es-button-base;
+  background-color: transparent;
+  color: var(--es-text-muted);
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  
+  &:hover:not(:disabled) {
+    background-color: rgba(118, 75, 40, 0.3);
+    color: var(--es-gold);
+  }
+}
+
+@mixin es-button-gradient {
+  @include es-button-base;
+  background: linear-gradient(to bottom, var(--es-accent-brown), var(--es-brown));
+  color: var(--es-gold);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #9e6c42, #865b38);
+  }
+}
+
+@mixin es-button-test {
+  @include es-button-base;
+  background: linear-gradient(to bottom, rgba(40, 35, 30, 0.9), rgba(60, 55, 50, 0.9));
+  color: var(--es-text-light);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(to bottom, rgba(50, 45, 40, 0.9), rgba(70, 65, 60, 0.9));
+  }
+}
+
+@mixin es-button-danger {
+  @include es-button-base;
+  background: linear-gradient(to bottom, rgba(70, 40, 40, 0.9), rgba(90, 50, 50, 0.9));
+  color: var(--es-text-white);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(to bottom, rgba(90, 50, 50, 0.9), rgba(110, 60, 60, 0.9));
+  }
+}
+
+@mixin es-button-small {
+  @include es-button-base;
+  background: linear-gradient(to bottom, rgba(60, 55, 50, 0.9), rgba(80, 75, 70, 0.9));
+  color: var(--es-text-light);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(to bottom, rgba(70, 65, 60, 0.9), rgba(90, 85, 80, 0.9));
+  }
+}
+
+@mixin es-input-base {
+  background-color: rgba(30, 30, 30, 0.8);
+  border: 1px solid var(--es-dark-brown);
+  border-radius: var(--es-border-radius);
+  color: var(--es-text-light);
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  transition: var(--es-transition);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--es-gold);
+    box-shadow: 0 0 0 2px rgba(248, 216, 124, 0.2);
+  }
+}
+
+@mixin es-panel {
+  background-color: rgba(40, 40, 40, 0.8);
+  border-radius: 8px;
+  border-left: 4px solid var(--es-dark-brown);
+  padding: 1.5rem;
+  box-shadow: var(--es-box-shadow);
+}
+
+@mixin es-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .modal-content {
+    position: relative;
+    background-color: rgb(40, 32, 22);
+    border: 2px solid rgba(248, 216, 124, 0.8);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-y: auto;
+    color: var(--es-text-white);
+    
+    box-shadow: 
+      0 8px 24px rgba(0, 0, 0, 0.8),
+      0 0 30px rgba(196, 164, 95, 0.2),
+      0 0 0 2px rgba(248, 216, 124, 0.5);
+  }
+}
+
+@mixin es-scrollbar {
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(30, 30, 30, 0.6);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--es-brown);
+    border-radius: 5px;
+    
+    &:hover {
+      background: var(--es-accent-brown);
+    }
+  }
+}
+
+/* Text styles */
+.es-text-gold {
+  color: var(--es-gold);
+}
+
+.es-text-light {
+  color: var(--es-text-light);
+}
+
+.es-text-white {
+  color: var(--es-text-white);
+}
+
+.es-text-muted {
+  color: var(--es-text-muted);
+}
+
+/* Utility classes */
+.es-fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.es-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

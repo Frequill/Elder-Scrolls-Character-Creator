@@ -35,10 +35,10 @@
              [class.selected]="selectedGame === game"
              tabindex="0"
              role="button"             [attr.aria-label]="'Select ' + game + ' game'">             <div class="option-image">
-               <img [src]="'../../../assets/' + game + '-logo.jpg'" 
+               <img [src]="'assets/' + game + '-logo.jpg'" 
                     [alt]="game + ' logo'" 
                     class="game-logo" 
-                    onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+                    onerror="this.style.display='none';">
              </div>
           <h3>{{ game }}</h3>
           <p>Create a character for {{ game }}</p>
@@ -58,38 +58,37 @@
              [class.selected]="selectedRace === race"
              tabindex="0"
              role="button"
-             [attr.aria-label]="'Select ' + race.name + ' race'">
-          <div class="option-image">
-            <img *ngIf="race.name === 'Altmer (High Elf)'" src="../../../assets/races/altmer-high-elf-img.jpg"
+             [attr.aria-label]="'Select ' + race.name + ' race'">          <div class="option-image">
+            <img *ngIf="race.name === 'Altmer (High Elf)'" src="assets/races/altmer-high-elf-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Argonian'" src="../../../assets/races/argonian-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Argonian'" src="assets/races/argonian-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Bosmer (Wood Elf)'" src="../../../assets/races/bosmer-wood-elf-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Bosmer (Wood Elf)'" src="assets/races/bosmer-wood-elf-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Breton'" src="../../../assets/races/breton-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Breton'" src="assets/races/breton-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Dunmer (Dark Elf)'" src="../../../assets/races/dunmer-dark-elf-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Dunmer (Dark Elf)'" src="assets/races/dunmer-dark-elf-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Imperial'" src="../../../assets/races/imperial-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Imperial'" src="assets/races/imperial-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Khajiit'" src="../../../assets/races/khajiit-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Khajiit'" src="assets/races/khajiit-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Nord'" src="../../../assets/races/nord-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Nord'" src="assets/races/nord-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Orc'" src="../../../assets/races/orc-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Orc'" src="assets/races/orc-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
-            <img *ngIf="race.name === 'Redguard'" src="../../../assets/races/redguard-img.jpg"
+                 onerror="this.style.display='none';">
+            <img *ngIf="race.name === 'Redguard'" src="assets/races/redguard-img.jpg"
                  [alt]="race.name + ' image'" class="race-image" 
-                 onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+                 onerror="this.style.display='none';">
           </div>
           <h3>{{ race.name }}</h3>
           <p>{{ race.description }}</p>
@@ -188,6 +187,41 @@
           </div>
         </div>
         
+        <!-- Magic Schools Selection (Multi-select) -->
+        <div class="option-group">
+          <h3>Magic Schools</h3>
+          <p class="option-hint">Select any magic schools your character uses (optional)</p>
+          <div class="options-list">
+            <div *ngFor="let magicOption of magicOptions" 
+                 class="option-item" 
+                 [class.selected]="isMagicSelected(magicOption)"
+                 (click)="toggleMagicSelection(magicOption)"
+                 tabindex="0"
+                 role="checkbox"
+                 [attr.aria-checked]="isMagicSelected(magicOption)"
+                 [attr.aria-label]="magicOption">
+              {{ magicOption }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Deity Selection -->
+        <div class="option-group">
+          <h3>Deity Worship</h3>
+          <div class="options-list">
+            <div *ngFor="let deityOption of deityOptions" 
+                 class="option-item" 
+                 [class.selected]="characterOptions.deity === deityOption"
+                 (click)="selectDeity(deityOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="characterOptions.deity === deityOption"
+                 [attr.aria-label]="'Select deity: ' + deityOption">
+              {{ deityOption }}
+            </div>
+          </div>
+        </div>
+        
         <!-- Background Selection -->
         <div class="option-group">
           <h3>Background</h3>
@@ -204,8 +238,7 @@
             </div>
           </div>
         </div>
-        
-        <!-- Prestige Selection -->
+          <!-- Prestige Selection -->
         <div class="option-group">
           <h3>Prestige</h3>
           <div class="options-list">
@@ -221,15 +254,30 @@
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Generate Class Button -->
+          <!-- Character Motivation Selection -->
+        <div class="option-group motivation-group">
+          <h3>Primary Motivation</h3>
+          <p class="option-hint">What drives your character to adventure? This will significantly impact your adventure recommendations.</p>
+          <div class="options-list">
+            <div *ngFor="let motivationOption of motivationOptions" 
+                 class="option-item motivation-item" 
+                 [class.selected]="isMotivationSelected(motivationOption)"
+                 (click)="selectMotivation(motivationOption)"
+                 tabindex="0"
+                 role="button"
+                 [attr.aria-selected]="isMotivationSelected(motivationOption)"
+                 [attr.aria-label]="'Select motivation: ' + motivationOption">
+              {{ motivationOption }}
+            </div>
+          </div>
+        </div>
+      </div>        <!-- Generate Character Button -->
       <div class="generate-class-container">
         <button class="generate-btn" 
                 [disabled]="!isCharacterOptionsComplete()" 
                 (click)="generateClass()"
                 [attr.aria-busy]="isGeneratingClass">
-          {{ isGeneratingClass ? 'Generating...' : 'Generate Class' }}
+          {{ isGeneratingClass ? 'Generating...' : 'Generate Character' }}
         </button>
         <div class="incomplete-message" *ngIf="!isCharacterOptionsComplete()">
           Please complete all selections to continue

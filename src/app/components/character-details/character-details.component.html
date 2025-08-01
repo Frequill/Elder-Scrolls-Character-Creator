@@ -1,4 +1,59 @@
-<div class="details-container" *ngIf="character">
+<div class="details-container" *ngIf="character" [ngClass]="{'has-active-tooltip': isAnyTooltipVisible()}">
+  
+  <div class="tooltip-overlay" *ngIf="isAnyTooltipVisible()" (click)="closeAllTooltips($event)"></div>
+  
+  <div class="central-modal" *ngIf="getCurrentModalData()" (click)="closeAllTooltips($event)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      
+      <div *ngIf="getCurrentModalData()?.type === 'quest'">
+        <div class="tooltip-section">
+          <span class="tooltip-label location-label">Location:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.location }}</span>
+        </div>
+        <div class="tooltip-section">
+          <span class="tooltip-label start-label">How to start:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.howToStart }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.tips">
+          <span class="tooltip-label tips-label">Helpful tips:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.tips }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.significance">
+          <span class="tooltip-label significance-label">Why it matters:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.significance }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.reward">
+          <span class="tooltip-label reward-label">Reward:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.reward }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="getCurrentModalData()?.type === 'faction'">
+        <div class="tooltip-section">
+          <span class="tooltip-label location-label">Location:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.location }}</span>
+        </div>
+        <div class="tooltip-section">
+          <span class="tooltip-label join-label">How to join:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.howToJoin }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.tips">
+          <span class="tooltip-label tips-label">Helpful tips:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.tips }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.benefits">
+          <span class="tooltip-label benefits-label">Benefits:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.benefits }}</span>
+        </div>
+        <div class="tooltip-section" *ngIf="getCurrentModalData()?.data.requirements">
+          <span class="tooltip-label requirements-label">Requirements:</span>
+          <span class="tooltip-content">{{ getCurrentModalData()?.data.requirements }}</span>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
   <div class="header">
     <button class="back-btn" (click)="createNewCharacter()">Create New</button>
     <h1>Character Details</h1>
@@ -25,22 +80,23 @@
     </div>
   </div>
   
-  <div class="content fade-in">
-    <div class="name-section">
+  <div class="content fade-in">    <div class="name-section">
       <div class="input-group">
         <label for="characterName">Character Name:</label>
-        <input type="text" id="characterName" [(ngModel)]="characterName" placeholder="Enter a name for your character">
+        <input type="text" id="characterName" [(ngModel)]="characterName" placeholder="Enter a name for your character" (blur)="updateName()" [value]="character.name || ''">
+        <button class="generate-name-btn" (click)="generateName()" [disabled]="isGeneratingName">
+          {{ isGeneratingName ? 'Generating...' : 'Generate Name' }}
+        </button>
       </div>
       <button class="save-btn" (click)="saveCharacter()" [class.saved]="isSaved">
         {{ isSaved ? 'Saved!' : 'Save Character' }}
       </button>
     </div>
     
-    <div class="character-info">
-      <!-- Character Image on the left -->
+    <div class="character-info">      <!-- Character Image on the left -->
       <div class="character-image-container">
         <div class="character-image" *ngIf="characterImage">
-          <img [src]="characterImage" alt="Character Portrait" onerror="this.src='../../../assets/placeholder-character.png'; this.onerror=null;">
+          <img [src]="characterImage" alt="Character Portrait">
         </div>
         <div class="placeholder-image" *ngIf="!characterImage">
           <div class="placeholder-text">No Image</div>
@@ -60,15 +116,53 @@
         <div class="character-detail">
           <span class="label">Race:</span>
           <span class="value">{{ character.race.name }}</span>
-        </div>
-        <div class="character-detail">
+        </div>        <div class="character-detail">
           <span class="label">Class:</span>
           <span class="value">{{ character.class.name }}</span>
         </div>
-        <div class="character-detail">
+        <div class="character-detail" *ngIf="character.sex">
+          <span class="label">Sex:</span>
+          <span class="value">{{ character.sex }}</span>
+        </div>        <div class="character-detail" *ngIf="character.age">
+          <span class="label">Age:</span>
+          <span class="value">{{ character.age }}</span>
+        </div>
+        <div class="character-detail" *ngIf="character.motivation">
+          <span class="label">Motivation:</span>
+          <span class="value">{{ character.motivation }}</span>
+        </div>        <div class="character-detail">
           <span class="label">Skills:</span>
-          <div class="skills">
-            <span *ngFor="let skill of character.class.skills" class="skill-tag">{{ skill }}</span>
+          <div class="skills" *ngIf="isArrayOfStrings(character.class.skills)">
+            <span *ngFor="let skill of getStringSkills(character.class.skills)" class="skill-tag">{{ skill }}</span>          </div>
+            
+          <!-- Morrowind Skills -->
+          <div class="skills" *ngIf="hasMorrowindSkills(character.class.skills)">
+            <div class="skill-category">
+              <span class="category-label">Major Skills:</span>
+              <span *ngFor="let skill of getMorrowindMajorSkills(character.class.skills)" class="skill-tag">{{ skill }}</span>
+            </div>
+            <div class="skill-category">
+              <span class="category-label">Minor Skills:</span>
+              <span *ngFor="let skill of getMorrowindMinorSkills(character.class.skills)" class="skill-tag">{{ skill }}</span>
+            </div>          </div>
+            
+          <!-- Oblivion Skills -->
+          <div class="skills" *ngIf="hasOblivionSkills(character.class.skills)">
+            <div class="skill-category">
+              <span class="category-label">Major Skills:</span>
+              <span *ngFor="let skill of getOblivionMajorSkills(character.class.skills)" class="skill-tag">{{ skill }}</span>
+            </div>          </div>
+            
+          <!-- Skyrim Skills -->
+          <div class="skills" *ngIf="hasSkyrimSkills(character.class.skills)">
+            <div class="skill-category">
+              <span class="category-label">Primary Skills:</span>
+              <span *ngFor="let skill of getSkyrimPrimarySkills(character.class.skills)" class="skill-tag">{{ skill }}</span>
+            </div>
+            <div class="skill-category">
+              <span class="category-label">Secondary Skills:</span>
+              <span *ngFor="let skill of getSkyrimSecondarySkills(character.class.skills)" class="skill-tag">{{ skill }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -85,6 +179,92 @@
       </div>
       <button class="generate-btn" (click)="generateBackstory()" [disabled]="isGeneratingBackstory">
         {{ isGeneratingBackstory ? 'Generating...' : 'Generate Backstory' }}
+      </button>
+    </div>
+
+    <!-- Adventure Guide Section -->
+    <div class="adventure-guide-section">
+      <h3>Adventure Guide</h3>
+      <div class="api-notification" *ngIf="adventureGuideApiError">
+        <div class="notification-content">
+          <div class="notification-icon error">!</div>
+          <div class="notification-message">
+            <p><strong>Adventure Guide Generation Error</strong></p>
+            <p>{{ adventureGuideApiError }}</p>
+          </div>
+        </div>
+      </div>
+        <div class="adventure-guide-content" *ngIf="character?.adventureGuide">
+        <div class="guide-section">
+          <h4>Overview</h4>
+          <p>{{ character.adventureGuide!.description }}</p>
+        </div>        <div class="guide-section">
+          <h4>Recommended Quests</h4>          <ul class="recommendation-list quest-list">            <li *ngFor="let quest of character.adventureGuide!.recommendedQuests; let i = index" 
+                class="quest-item" 
+                [class.active]="isQuestInfoVisible('regular', i)"
+                (click)="toggleQuestInfo('regular', i, $event)">
+              <div class="quest-name">
+                {{ quest.name }}
+                <span class="expand-hint">Click to expand...</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Daedric Quests section (if applicable) -->
+        <div class="guide-section" *ngIf="character.adventureGuide!.daedricQuests && character.adventureGuide!.daedricQuests.length > 0">
+          <h4>Daedric Quests</h4>          <ul class="recommendation-list quest-list">            <li *ngFor="let quest of character.adventureGuide!.daedricQuests; let i = index" 
+                class="quest-item" 
+                [class.active]="isQuestInfoVisible('daedric', i)"
+                (click)="toggleQuestInfo('daedric', i, $event)">
+              <div class="quest-name">
+                {{ quest.name }}
+                <span class="expand-hint">Click to expand...</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h4>Recommended Factions</h4>          <ul class="recommendation-list faction-list">            <li *ngFor="let faction of character.adventureGuide!.recommendedFactions; let i = index" 
+                class="faction-item" 
+                [class.active]="isFactionInfoVisible(i)"
+                (click)="toggleFactionInfo(i, $event)">
+              <div class="faction-name">
+                {{ faction.name }}
+                <span class="expand-hint">Click to expand...</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h4>Roleplay Tips</h4>
+          <p>{{ character.adventureGuide!.roleplayTips }}</p>
+        </div>
+        
+        <div class="guide-section">
+          <h4>Character Alignment</h4>
+          <p>{{ character.adventureGuide!.alignment }}</p>
+        </div>
+        
+        <div class="guide-section">
+          <h4>Recommended Playstyle</h4>
+          <p>{{ character.adventureGuide!.playstyle }}</p>
+        </div>
+        
+        <div class="guide-section" *ngIf="character.adventureGuide!.specialNotes">
+          <h4>Special Notes</h4>
+          <p>{{ character.adventureGuide!.specialNotes }}</p>
+        </div>
+      </div>
+      
+      <div class="no-guide" *ngIf="!character?.adventureGuide">
+        <p>No adventure guide generated yet.</p>
+        <p>Generate an adventure guide to receive gameplay recommendations and roleplay advice.</p>
+      </div>
+        <button class="generate-btn" (click)="generateAdventureGuide()" [disabled]="isGeneratingAdventureGuide">
+        {{ isGeneratingAdventureGuide ? 'Generating...' : 'Generate Adventure Guide' }}
       </button>
     </div>
   </div>

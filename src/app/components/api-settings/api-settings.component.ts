@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { OpenaiService } from '../../services/openai.service';
+import { APP_CONSTANTS, API_KEY_VALIDATION } from '../../shared/constants';
 
 @Component({
   selector: 'app-api-settings',
@@ -67,7 +68,7 @@ export class ApiSettingsComponent implements OnInit {
     // Basic validation of API key format
     if (!this.isValidOpenAIKey(trimmedKey)) {
       this.apiStatus = false;
-      this.apiErrorMessage = 'Invalid API key format. OpenAI API keys typically start with "sk-" followed by letters and numbers';
+      this.apiErrorMessage = API_KEY_VALIDATION.ERROR_MESSAGES.INVALID_FORMAT;
       this.hasBilling = null;
       return;
     }
@@ -115,14 +116,13 @@ export class ApiSettingsComponent implements OnInit {
   
   /**
    * Validates that the provided string looks like an OpenAI API key
-   * OpenAI API keys typically start with 'sk-' and are 51 characters long
+   * OpenAI API keys typically start with 'sk-' and are at least 40 characters long
    * 
    * @param key The API key to validate
    * @returns true if the key matches the expected format
    */
   private isValidOpenAIKey(key: string): boolean {
-    // Check if the key starts with 'sk-' and is the right length
-    return key.startsWith('sk-') && key.length >= 40;
+    return key.startsWith(API_KEY_VALIDATION.PREFIX) && key.length >= API_KEY_VALIDATION.MIN_LENGTH;
   }
   
   /**

@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Character } from '../models/elder-scrolls.model';
+import { Character } from '../models';
+import { APP_CONSTANTS } from '../shared/constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StorageService {
-  private readonly STORAGE_KEY = 'elder-scrolls-characters';
+  private readonly STORAGE_KEY = APP_CONSTANTS.STORAGE_KEYS.CHARACTERS;
   constructor() { }
 
   saveCharacter(character: Character): void {

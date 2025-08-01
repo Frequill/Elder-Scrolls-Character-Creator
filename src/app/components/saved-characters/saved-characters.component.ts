@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StorageService } from '../../services/storage.service';
 import { CharacterService } from '../../services/character.service';
-import { Character } from '../../models/elder-scrolls.model';
+import { Character } from '../../models';
 
 @Component({
   selector: 'app-saved-characters',

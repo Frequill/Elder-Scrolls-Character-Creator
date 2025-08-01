@@ -1,14 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-
-:root {
-  --primary-color: #f8d87c;     /* Gold */
-  --secondary-color: #764b28;   /* Brown */
-  --background-dark: #121212;   /* Dark background */
-  --text-color: #e0e0e0;        /* Light text */
-  --accent-color: #8e5c32;      /* Darker brown for accents */
-  --panel-bg: rgba(30, 30, 30, 0.8);  /* Panel background */
-}
+@import 'app/shared/styles/elder-scrolls-theme.scss';
 
 * {
   margin: 0;
@@ -19,9 +10,10 @@
 body, html {
   height: 100%;
   font-family: 'EB Garamond', serif;
-  background-color: var(--background-dark);
-  color: var(--text-color);
+  background-color: var(--es-dark-bg);
+  color: var(--es-text-light);
   line-height: 1.6;
+  @include es-scrollbar;
 }
 
 .app-container {
@@ -34,30 +26,6 @@ button {
   cursor: pointer;
 }
 
-/* Elder Scrolls themed scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(30, 30, 30, 0.6);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
-}
-
-/* Animation for page transitions */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.fade-in {
-  animation: fadeIn 0.8s ease-in-out;
+body.tooltip-open {
+  overflow: hidden !important;
 }

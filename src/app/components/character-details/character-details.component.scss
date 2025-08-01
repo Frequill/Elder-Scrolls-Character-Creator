@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-
-.details-container {  min-height: 100vh;
+.details-container {
+  min-height: 100vh;
   width: 100%;
   background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../../assets/map-of-tamriel.jpg');
   background-size: cover;
@@ -58,10 +57,11 @@
   padding: 1.5rem;
   border-radius: 8px;
   border-left: 4px solid #6e5a30;
-
+  
   .input-group {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     
     label {
       margin-right: 1rem;
@@ -83,6 +83,29 @@
       &:focus {
         outline: none;
         border-color: #f8d87c;
+      }
+    }
+    
+    .generate-name-btn {
+      margin-left: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: rgba(118, 75, 40, 0.3);
+      color: #f8d87c;
+      border: 1px solid #6e5a30;
+      border-radius: 4px;
+      font-family: 'EB Garamond', serif;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+      height: 44px;
+      
+      &:hover {
+        background-color: rgba(118, 75, 40, 0.5);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
     }
   }
@@ -177,18 +200,20 @@
       color: #f8d87c;
       font-size: 1.2rem;
     }
-    
-    .skills {
+      .skills {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-top: 0.5rem;
+      margin-bottom: 1rem;
       
       .skill-tag {
         background-color: rgba(110, 90, 48, 0.5);
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
         font-size: 0.9rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
       }
     }
   }
@@ -215,6 +240,28 @@
     max-height: 400px;
     overflow-y: auto;
     padding-right: 1rem;
+    
+    .backstory-paragraph {
+      margin-bottom: 1.5rem;
+      text-align: justify;
+      color: #e0e0e0;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      text-indent: 1.5rem;
+      
+      &:first-of-type {
+        text-indent: 0;
+        &::first-letter {
+          font-size: 1.5rem;
+          font-weight: 500;
+          color: #f8d87c;
+        }
+      }
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
     
     p {
       margin-bottom: 1rem;
@@ -388,6 +435,331 @@
       &:hover {
         background-color: rgba(138, 95, 60, 0.7);
       }
+    }
+  }
+}
+
+// Custom styles for different skill categories
+.skill-category {
+  margin-bottom: 1.25rem;
+  
+  .category-label {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #888;
+    font-size: 0.9rem;
+  }
+}
+
+// All skills now use the default skill-tag styling
+
+.adventure-guide-section {
+  background-color: rgba(40, 30, 20, 0.7);
+  border-radius: 8px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.4);
+  
+  h3 {
+    color: #f8d87c;
+    margin-top: 0;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid #6e5a30;
+    padding-bottom: 0.5rem;
+  }
+  
+  h4 {
+    color: #c4a45f;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .guide-section {
+    margin-bottom: 1.5rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    p {
+      line-height: 1.6;
+      margin: 0.5rem 0;
+    }
+  }
+  
+  .recommendation-list {
+    list-style-type: none;
+    padding-left: 0;
+    
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px dotted rgba(110, 90, 48, 0.3);
+      
+      &:last-child {
+        border-bottom: none;
+      }        &:before {
+          content: "•";
+          color: #c4a45f;
+          font-weight: bold;
+          display: inline-block;
+          width: 1em;
+          margin-left: -1em;
+      }
+      
+      // Add a small hover animation to indicate clickability
+      &:hover {
+        background-color: rgba(110, 90, 48, 0.1);
+      }
+    }
+    
+    &.quest-list, &.faction-list {      li.quest-item, li.faction-item {
+        position: relative;
+        cursor: pointer;
+        padding: 0.7rem 0.5rem;
+        transition: background-color 0.2s ease-in-out;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        
+        &:before {
+          content: none; // Remove bullet for quest items and faction items
+        }        &:hover {
+          background-color: rgba(110, 90, 48, 0.3);
+          transform: translateX(2px);
+          transition: all 0.2s ease;
+          border: 1px solid rgba(196, 164, 95, 0.3);
+          
+          // Only show expand hint on the specific item being hovered
+          .quest-name .expand-hint, .faction-name .expand-hint {
+            display: block;
+            opacity: 1;
+          }        }          &.active {
+          background-color: rgba(110, 90, 48, 0.4);
+          border-left: 3px solid #c4a45f;
+          transform: translateX(3px);
+          transition: all 0.2s ease;
+          border: 1px solid rgba(196, 164, 95, 0.5);
+          border-left: 3px solid #c4a45f;
+          position: relative;
+          z-index: 5;
+          color: #f0f0f0;
+          
+          .quest-name, .faction-name {
+            color: #f8d87c;
+          }
+        }
+        
+        // Ensure container has sufficient padding to accommodate tooltips
+        margin-bottom: 2rem;
+        }        .quest-name, .faction-name {
+          font-weight: 500;
+          color: #e0e0e0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.2rem 0;
+          transition: all 0.2s ease;
+          position: relative;
+          
+          .info-icon {
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+            opacity: 0.7;
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            display: none; // Hide the icon
+          }          .expand-hint {
+            display: none; // Hidden by default
+            position: absolute;
+            right: 0;
+            font-size: 0.75rem;
+            font-style: italic;
+            color: #c4a45f;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background-color: rgba(30, 25, 20, 0.8);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            border-left: 2px solid #c4a45f;
+            pointer-events: none;
+          }
+        }
+      }
+    }
+  }
+
+  .no-guide {
+    text-align: center;
+    padding: 2rem 0;
+    color: #a8a8a8;
+    
+    p {
+      margin: 0.5rem 0;
+    }
+  }
+  
+  .generate-btn {
+    background-color: rgba(110, 90, 48, 0.3);
+    color: #f8d87c;
+    border: 1px solid #6e5a30;
+    padding: 0.8rem 1.5rem;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: 'EB Garamond', serif;
+    
+    &:hover {
+      background-color: rgba(118, 75, 40, 0.5);
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      
+      &:hover {
+        background-color: rgba(110, 90, 48, 0.3);
+      }    }
+  }
+
+// Remove global backdrop completely and use built-in box shadow on tooltips instead
+.tooltip-backdrop {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none;
+  
+  &.active {
+    display: none !important;
+    opacity: 0 !important;
+  }
+}
+
+// Making sure quest items appear darkened when tooltips are active
+// Specific styling for when tooltips are active
+.has-active-tooltip {
+  .quest-item:not(.active), 
+  .faction-item:not(.active),
+  .guide-section h4,
+  .guide-section p {
+    opacity: 0.6 !important;
+    filter: brightness(0.8) !important;
+    transition: all 0.3s ease;
+  }
+  
+  .guide-section {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .quest-item.active,
+  .faction-item.active {
+    opacity: 1 !important;
+    filter: brightness(1) !important;
+    box-shadow: 0 0 15px rgba(196, 164, 95, 0.2);
+    border-color: #c4a45f;
+  }
+}
+
+.tooltip-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.tooltip-section {
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dotted rgba(196, 164, 95, 0.3);
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .tooltip-label {
+    font-weight: 600;
+    color: #f8d87c;
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 1.05em;
+    letter-spacing: 0.5px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,1);
+  }
+  
+  .tooltip-content {
+    display: block;
+    padding-left: 0.5rem;
+    border-left: 2px solid rgba(196, 164, 95, 0.4);
+    font-size: 1em;
+    line-height: 1.6;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,1);
+    
+    a {
+      color: #f8d87c;
+      text-decoration: underline;
+      transition: color 0.2s ease;
+      
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+.tips-label {
+  color: #a3e8ff;
+}
+
+.central-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .modal-content {
+    position: relative;
+    width: 500px;
+    max-width: 90vw;
+    max-height: 85vh;
+    background-color: rgb(40, 32, 22);
+    border: 2px solid rgba(248, 216, 124, 0.8);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-y: auto;
+    opacity: 1;
+    filter: none;
+    color: #ffffff;
+    
+    box-shadow: 
+      0 8px 24px rgba(0, 0, 0, 0.8),
+      0 0 30px rgba(196, 164, 95, 0.2),
+      0 0 0 2px rgba(248, 216, 124, 0.5);
+    
+    * {
+      color: inherit;
+      opacity: 1;
+      filter: none;
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Character, Game, Race, CharacterClass, RACES, CLASSES } from '../models/elder-scrolls.model';
+import { Character, Game, Race, CharacterClass, RACES, CLASSES, AdventureGuide } from '../models';
 import { OpenaiService } from './openai.service';
 
 @Injectable({
@@ -34,5 +34,24 @@ export class CharacterService {
 
   generateCharacterImage(character: Character): Observable<string> {
     return this.openaiService.generateCharacterImage(character);
+  }
+
+  generateCharacterName(character: Character): Observable<string> {
+    return this.openaiService.generateCharacterName(character);
+  }
+  
+  generateBackstoryWithName(character: Character): Observable<string> {
+    return this.openaiService.generateBackstoryWithName(character);
+  }
+  replaceNameInBackstory(backstory: string, oldName: string, newName: string): string {
+    return this.openaiService.replaceNameInBackstory(backstory, oldName, newName);
+  }
+  
+  replaceNameInAdventureGuide(adventureGuide: AdventureGuide, oldName: string, newName: string): AdventureGuide {
+    return this.openaiService.replaceNameInAdventureGuide(adventureGuide, oldName, newName);
+  }
+
+  generateAdventureGuide(character: Character): Observable<AdventureGuide> {
+    return this.openaiService.generateAdventureGuide(character);
   }
 }

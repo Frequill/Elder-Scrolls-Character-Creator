@@ -1,0 +1,8 @@
+@import './shared/styles/elder-scrolls-theme.scss';
+
+.app-container {
+  min-height: 100vh;
+  background-color: var(--es-dark-bg);
+  color: var(--es-text-light);
+  font-family: 'EB Garamond', serif;
+}
