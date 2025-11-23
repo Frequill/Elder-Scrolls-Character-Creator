@@ -2,7 +2,7 @@
 
 An Angular application for creating Elder Scrolls characters with AI-generated backstories and images for Morrowind, Oblivion, and Skyrim!
 
-Take note: *THIS IS A WORK IN PROGRESS AND DOESN'T REALLY WORK... yet. There's a ton of placeholders and such*
+Take note: *THIS IS A WORK IN PROGRESS There's a few placeholders and such*
 
 Also, at this point this *should* work on your mobile device of choice... but I have not made this mobile-first in the slightest so take that *should* very litterally and with a massive pinch of salt.
 
