@@ -202,18 +202,44 @@ export class OpenaiService {
     
     // Get the biological sex from character options if available
     const characterSex = character.sex || 'Male'; // Default to Male if not specified
-      const prompt = `Create a detailed backstory for an Elder Scrolls character with the following details:
+    const characterAge = character.age || 'Adult';
+    const characterDeity = character.deity || 'None';
+    const characterBackground = character.background || 'Common';
+    const characterPrestige = character.prestige || 'Unknown';
+    const characterMotivation = character.motivation || 'Adventure';
+    
+    const prompt = `Create a concise backstory for an Elder Scrolls character with the following details:
       - Game: ${character.game}
       - Race: ${character.race.name}
       - Biological Sex: ${characterSex}
+      - Age: ${characterAge}
+      - Social Background: ${characterBackground}
+      - Fame/Prestige Level: ${characterPrestige}
       - Class: ${character.class.name}
       - Skills: ${this.formatSkillsForPrompt(character.class.skills, character.game)}
+      - Deity/Religion: ${characterDeity}
+      - Primary Motivation: ${characterMotivation}
       
-      Please write a first-person narrative of this character's origin, motivations, and how they came to be an adventurer in the world of ${character.game}.
-      IMPORTANT: Start the backstory with a clear introduction of the character's name, such as "I am [Character Name]" or "My name is [Character Name]".
-      Make sure the backstory reflects the character's biological sex.
-      Create a lore-appropriate name for the character that follows Elder Scrolls naming conventions for their race.
-      Keep the backstory lore-friendly to the Elder Scrolls universe.`;
+      Write a THIRD-PERSON narrative (not first-person) in the style of a D&D character biography. 
+      
+      CRITICAL REQUIREMENTS - FOLLOW THESE EXACTLY:
+      - Start with "You are [Character Name] the [race]."
+      - Generate a lore-appropriate Elder Scrolls name for the character based on their race
+      - Write in third-person perspective (use character's name, "they", "he", or "she" - never use "I" or "my")
+      - MUST reflect the character's age (${characterAge}) - mention their approximate age or life stage
+      - MUST reflect their social background (${characterBackground}) - this is their origin/upbringing
+      - MUST reflect their fame/prestige level (${characterPrestige}) - how well-known or respected they are
+      - MUST incorporate their deity/religious beliefs (${characterDeity}) if not "None"
+      - MUST center the backstory around their PRIMARY MOTIVATION: ${characterMotivation}
+      - The backstory MUST explain WHY this motivation drives them based on their background and experiences
+      - Keep it concise (3-4 short paragraphs maximum)
+      - Add double line breaks between paragraphs for readability
+      - Make it read like a character description/biography, not a journal entry
+      - Include origin, key life events, and current situation
+      - Reflect the character's biological sex appropriately (use "he/his" for male, "she/her" for female)
+      - Keep it lore-friendly to the Elder Scrolls universe
+      
+      Example tone: "You are James the Imperial. Born into nobility, James was raised with wealth and privilege..."`;
     
     const body = {
       model: "gpt-4",
@@ -407,6 +433,59 @@ export class OpenaiService {
   }
 
   /**
+   * Generates a new class name while keeping the same class description and skills
+   * 
+   * @param character The character object with existing class information
+   * @returns An Observable with the new class name
+   */
+  generateClassName(character: Character): Observable<string> {
+    if (!this.apiKey) {
+      return of(character.class.name);
+    }
+    
+    const headers = this.getHeaders();
+    
+    const skillsDescription = this.formatSkillsForPrompt(character.class.skills, character.game);
+    
+    const prompt = `Generate a creative and lore-appropriate Elder Scrolls class name for ${character.game}.
+      The class has the following characteristics:
+      - Description: ${character.class.description}
+      - Skills: ${skillsDescription}
+      
+      The current class name is "${character.class.name}". Generate a DIFFERENT class name that is equally fitting but uses different words or concepts.
+      Create a unique class name that captures the essence of these abilities and fits the Elder Scrolls universe.
+      The name should be evocative and memorable, similar to canonical class names like "Nightblade", "Spellsword", or "Battlemage".
+      Return only the class name without any explanation or additional text.`;
+    
+    const body = {
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert on Elder Scrolls lore and class naming conventions. Create class names that are creative yet fit seamlessly into the Elder Scrolls universe."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.8
+    };
+    
+    return this.http.post<any>(this.chatCompletionsUrl, body, { headers }).pipe(
+      map(response => {
+        const content = response.choices[0].message.content;
+        return StringUtils.cleanResponseText(content);
+      }),
+      catchError(error => {
+        console.error('Error generating class name:', error);
+        const errorMessage = this.extractErrorMessage(error);
+        throw new Error(errorMessage || 'Failed to generate class name');
+      })
+    );
+  }
+
+  /**
    * Generates a backstory that incorporates the character's name
    * 
    * @param character The complete character object including name
@@ -419,17 +498,44 @@ export class OpenaiService {
     const headers = this.getHeaders();
     
     const characterSex = character.sex || 'Male';
-      const prompt = `Create a detailed backstory for an Elder Scrolls character named ${character.name} with the following details:
+    const characterAge = character.age || 'Adult';
+    const characterDeity = character.deity || 'None';
+    const characterBackground = character.background || 'Common';
+    const characterPrestige = character.prestige || 'Unknown';
+    const characterMotivation = character.motivation || 'Adventure';
+      const prompt = `Create a concise backstory for an Elder Scrolls character named ${character.name} with the following details:
       - Name: ${character.name}
       - Game: ${character.game}
       - Race: ${character.race.name}
       - Biological Sex: ${characterSex}
+      - Age: ${characterAge}
+      - Social Background: ${characterBackground}
+      - Prestige/Fame Level: ${characterPrestige}
+      - Deity/Religion: ${characterDeity}
+      - Primary Motivation: ${characterMotivation}
       - Class: ${character.class.name}
       - Skills: ${this.formatSkillsForPrompt(character.class.skills, character.game)}
       
-      Please write a first-person narrative of ${character.name}'s origin, motivations, and how they came to be an adventurer in the world of ${character.game}. 
-      Make sure the backstory reflects the character's biological sex and uses their name appropriately throughout the narrative.
-      Keep the backstory lore-friendly to the Elder Scrolls universe.`;
+      Write a THIRD-PERSON narrative (not first-person) in the style of a D&D character biography.
+      
+      CRITICAL REQUIREMENTS (YOU MUST FOLLOW THESE):
+      - MUST reflect their social background (${characterBackground}) - this is their origin/upbringing, NOT just a generic mention
+      - MUST reflect their fame/prestige level (${characterPrestige}) - how well-known or respected they are
+      - MUST center the backstory around their PRIMARY MOTIVATION: ${characterMotivation}
+      - MUST include their deity/religious affiliation: ${characterDeity}
+      - MUST reflect their age appropriately: ${characterAge}
+      
+      IMPORTANT FORMATTING REQUIREMENTS:
+      - Start with "You are ${character.name} the ${character.race.name}."
+      - Write in third-person perspective (use "${character.name}", "they", "he", or "she" - never use "I" or "my")
+      - Keep it concise (3-4 short paragraphs maximum)
+      - Add double line breaks between paragraphs for readability
+      - Make it read like a character description/biography, not a journal entry
+      - Include origin, key life events, and current situation/motivations
+      - Reflect the character's biological sex appropriately (use "he/his" for male, "she/her" for female)
+      - Keep it lore-friendly to the Elder Scrolls universe
+      
+      Example tone: "You are James the Imperial. Once a criminal, James was arrested for petty theft at age 12..."`;
     
     const body = {
       model: "gpt-4",
@@ -548,8 +654,8 @@ export class OpenaiService {
    * 
    * @param game The selected Elder Scrolls game
    * @returns A basic CharacterClass object with game-specific skills
-   * @private
-   */  private getFallbackClass(game: Game): CharacterClass {
+   */
+  getFallbackClass(game: Game): CharacterClass {
     let skills: string[] | GameSpecificSkills;
 
     switch (game) {
@@ -692,6 +798,79 @@ export class OpenaiService {
         adventureGuide.daedricQuests.map(quest => processQuestDetails(quest)) : 
         undefined,
       specialNotes: adventureGuide.specialNotes ? applyNameReplacement(adventureGuide.specialNotes) : undefined
+    };
+  }
+
+  /**
+   * Replaces a character's class name in an existing backstory with a new class name
+   * 
+   * @param backstory The existing character backstory
+   * @param oldClassName The old class name to replace
+   * @param newClassName The new class name
+   * @returns Updated backstory with the new class name
+   */
+  replaceClassNameInBackstory(backstory: string, oldClassName: string, newClassName: string): string {
+    if (!backstory || !oldClassName || !newClassName) {
+      return backstory;
+    }
+    
+    // Use word boundaries to ensure we only replace complete class name matches
+    const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'gi');
+    return backstory.replace(classNameRegex, newClassName);
+  }
+
+  /**
+   * Replaces a character's class name in an existing adventure guide with a new class name
+   * 
+   * @param adventureGuide The existing character adventure guide
+   * @param oldClassName The old class name to replace
+   * @param newClassName The new class name
+   * @returns Updated adventure guide with the new class name
+   */
+  replaceClassNameInAdventureGuide(adventureGuide: AdventureGuide, oldClassName: string, newClassName: string): AdventureGuide {
+    if (!adventureGuide || !oldClassName || !newClassName) {
+      return adventureGuide;
+    }
+    
+    const classNameRegex = new RegExp(`\\b${oldClassName}\\b`, 'gi');
+    
+    const applyClassNameReplacement = (text: string): string => {
+      if (!text) return text;
+      return text.replace(classNameRegex, newClassName);
+    };
+    
+    const processQuestDetails = (quest: QuestDetails): QuestDetails => {
+      return {
+        name: applyClassNameReplacement(quest.name),
+        location: applyClassNameReplacement(quest.location),
+        howToStart: applyClassNameReplacement(quest.howToStart),
+        tips: quest.tips ? applyClassNameReplacement(quest.tips) : undefined,
+        significance: quest.significance ? applyClassNameReplacement(quest.significance) : undefined,
+        reward: quest.reward ? applyClassNameReplacement(quest.reward) : undefined
+      };
+    };
+    
+    const processFactionDetails = (faction: FactionDetails): FactionDetails => {
+      return {
+        name: applyClassNameReplacement(faction.name),
+        location: applyClassNameReplacement(faction.location),
+        howToJoin: applyClassNameReplacement(faction.howToJoin),
+        benefits: faction.benefits ? applyClassNameReplacement(faction.benefits) : undefined,
+        requirements: faction.requirements ? applyClassNameReplacement(faction.requirements) : undefined
+      };
+    };
+    
+    return {
+      description: applyClassNameReplacement(adventureGuide.description),
+      recommendedQuests: adventureGuide.recommendedQuests.map(quest => processQuestDetails(quest)),
+      recommendedFactions: adventureGuide.recommendedFactions.map(faction => processFactionDetails(faction)),
+      alignment: applyClassNameReplacement(adventureGuide.alignment),
+      playstyle: applyClassNameReplacement(adventureGuide.playstyle),
+      roleplayTips: applyClassNameReplacement(adventureGuide.roleplayTips || ''),
+      daedricQuests: adventureGuide.daedricQuests ? 
+        adventureGuide.daedricQuests.map(quest => processQuestDetails(quest)) : 
+        undefined,
+      specialNotes: adventureGuide.specialNotes ? applyClassNameReplacement(adventureGuide.specialNotes) : undefined
     };
   }
 

@@ -51,6 +51,18 @@ export class CharacterService {
     return this.openaiService.replaceNameInAdventureGuide(adventureGuide, oldName, newName);
   }
 
+  generateClassName(character: Character): Observable<string> {
+    return this.openaiService.generateClassName(character);
+  }
+
+  replaceClassNameInBackstory(backstory: string, oldClassName: string, newClassName: string): string {
+    return this.openaiService.replaceClassNameInBackstory(backstory, oldClassName, newClassName);
+  }
+
+  replaceClassNameInAdventureGuide(adventureGuide: AdventureGuide, oldClassName: string, newClassName: string): AdventureGuide {
+    return this.openaiService.replaceClassNameInAdventureGuide(adventureGuide, oldClassName, newClassName);
+  }
+
   generateAdventureGuide(character: Character): Observable<AdventureGuide> {
     return this.openaiService.generateAdventureGuide(character);
   }

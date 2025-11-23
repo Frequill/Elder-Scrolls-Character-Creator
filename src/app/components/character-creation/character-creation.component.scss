@@ -304,35 +304,3 @@
     }
   }
 }
-
-// Motivation Selector Styles
-.motivation-group {
-  border: 1px solid #7c542b;
-  padding: 1.2rem;
-  background: rgba(30, 30, 30, 0.8);
-  margin-top: 2rem;
-  
-  h3 {
-    color: #f8d87c;
-    font-size: 1.3rem;
-  }
-  
-  .option-hint {
-    color: #f8d87c;
-    margin-bottom: 1rem;
-  }
-  
-  .motivation-item {
-    background-color: rgba(76, 56, 36, 0.8);
-    
-    &:hover {
-      background-color: rgba(124, 84, 43, 0.9);
-    }
-    
-    &.selected {
-      background-color: #7c542b;
-      border-color: #f8d87c;
-      box-shadow: 0 0 8px rgba(248, 216, 124, 0.6);
-    }
-  }
-}

@@ -85,7 +85,7 @@
         <label for="characterName">Character Name:</label>
         <input type="text" id="characterName" [(ngModel)]="characterName" placeholder="Enter a name for your character" (blur)="updateName()" [value]="character.name || ''">
         <button class="generate-name-btn" (click)="generateName()" [disabled]="isGeneratingName">
-          {{ isGeneratingName ? 'Generating...' : 'Generate Name' }}
+          {{ isGeneratingName ? 'Generating...' : (hasGeneratedName ? 'Regenerate Name' : 'Generate Name') }}
         </button>
       </div>
       <button class="save-btn" (click)="saveCharacter()" [class.saved]="isSaved">
@@ -102,13 +102,20 @@
           <div class="placeholder-text">No Image</div>
         </div>
         <button class="generate-btn" (click)="generateImage()" [disabled]="isGeneratingImage">
-          {{ isGeneratingImage ? 'Generating...' : 'Generate Image' }}
+          {{ isGeneratingImage ? 'Generating...' : (hasGeneratedImage ? 'Regenerate Image' : 'Generate Image') }}
         </button>
       </div>
       
       <!-- Character Stats in the middle -->
       <div class="character-stats">
-        <h2>{{ character.race.name }} {{ character.class.name }}</h2>
+        <div class="stats-header">
+          <h2>{{ character.race.name }} {{ character.class.name }}</h2>
+          <button class="generate-class-name-btn" 
+                  (click)="generateClassName()"
+                  [disabled]="isGeneratingClassName || !openaiService.getApiKey()">
+            {{ isGeneratingClassName ? 'Generating...' : (hasGeneratedClassName ? 'Regenerate Class Name' : 'Generate Class Name') }}
+          </button>
+        </div>
         <div class="character-detail">
           <span class="label">Game:</span>
           <span class="value">{{ character.game }}</span>
@@ -178,7 +185,7 @@
         <p>No backstory generated yet.</p>
       </div>
       <button class="generate-btn" (click)="generateBackstory()" [disabled]="isGeneratingBackstory">
-        {{ isGeneratingBackstory ? 'Generating...' : 'Generate Backstory' }}
+        {{ isGeneratingBackstory ? 'Generating...' : (hasGeneratedBackstory ? 'Regenerate Backstory' : 'Generate Backstory') }}
       </button>
     </div>
 
@@ -264,7 +271,7 @@
         <p>Generate an adventure guide to receive gameplay recommendations and roleplay advice.</p>
       </div>
         <button class="generate-btn" (click)="generateAdventureGuide()" [disabled]="isGeneratingAdventureGuide">
-        {{ isGeneratingAdventureGuide ? 'Generating...' : 'Generate Adventure Guide' }}
+        {{ isGeneratingAdventureGuide ? 'Generating...' : (hasGeneratedAdventureGuide ? 'Regenerate Adventure Guide' : 'Generate Adventure Guide') }}
       </button>
     </div>
   </div>

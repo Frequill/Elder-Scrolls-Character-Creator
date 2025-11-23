@@ -1,15 +1,25 @@
 import { Routes } from '@angular/router';
-import { LandingPageComponent } from './components/landing-page/landing-page.component';
-import { CharacterCreationComponent } from './components/character-creation/character-creation.component';
-import { CharacterDetailsComponent } from './components/character-details/character-details.component';
-import { SavedCharactersComponent } from './components/saved-characters/saved-characters.component';
-import { ApiSettingsComponent } from './components/api-settings/api-settings.component';
 
 export const routes: Routes = [
-  { path: '', component: LandingPageComponent },
-  { path: 'create-character', component: CharacterCreationComponent },
-  { path: 'character-details', component: CharacterDetailsComponent },
-  { path: 'saved-characters', component: SavedCharactersComponent },
-  { path: 'api-settings', component: ApiSettingsComponent },
+  { 
+    path: '', 
+    loadComponent: () => import('./components/landing-page/landing-page.component').then(m => m.LandingPageComponent)
+  },
+  { 
+    path: 'create-character', 
+    loadComponent: () => import('./components/character-creation/character-creation.component').then(m => m.CharacterCreationComponent)
+  },
+  { 
+    path: 'character-details', 
+    loadComponent: () => import('./components/character-details/character-details.component').then(m => m.CharacterDetailsComponent)
+  },
+  { 
+    path: 'saved-characters', 
+    loadComponent: () => import('./components/saved-characters/saved-characters.component').then(m => m.SavedCharactersComponent)
+  },
+  { 
+    path: 'api-settings', 
+    loadComponent: () => import('./components/api-settings/api-settings.component').then(m => m.ApiSettingsComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

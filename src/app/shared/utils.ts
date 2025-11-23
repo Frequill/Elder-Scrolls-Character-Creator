@@ -42,6 +42,21 @@ export class ValidationUtils {
   }
 }
 
+export enum ErrorCategory {
+  Billing = 'billing',
+  Authentication = 'authentication',
+  RateLimit = 'rate-limit',
+  Network = 'network',
+  Unknown = 'unknown'
+}
+
+export interface CategorizedError {
+  category: ErrorCategory;
+  message: string;
+  canRetry: boolean;
+  isBillingIssue: boolean;
+}
+
 export class ErrorUtils {
   static extractErrorMessage(error: any): string {
     if (error?.error?.error?.message) {
@@ -63,6 +78,66 @@ export class ErrorUtils {
            errorText.includes('payment') ||
            errorText.includes('subscription') ||
            errorText.includes('credit');
+  }
+
+  static categorizeApiError(error: any): CategorizedError {
+    const message = this.extractErrorMessage(error);
+    const errorText = message.toLowerCase();
+    const fullErrorText = JSON.stringify(error).toLowerCase();
+    
+    // Check for billing/quota issues
+    if (errorText.includes('billing') || 
+        errorText.includes('quota') || 
+        errorText.includes('payment') ||
+        errorText.includes('subscription') ||
+        errorText.includes('credit') ||
+        fullErrorText.includes('billing') ||
+        fullErrorText.includes('quota')) {
+      return {
+        category: ErrorCategory.Billing,
+        message: message,
+        canRetry: false,
+        isBillingIssue: true
+      };
+    }
+    
+    // Check for authentication errors
+    if (error.status === 401 || errorText.includes('unauthorized') || errorText.includes('authentication')) {
+      return {
+        category: ErrorCategory.Authentication,
+        message: message,
+        canRetry: false,
+        isBillingIssue: false
+      };
+    }
+    
+    // Check for rate limit errors
+    if (error.status === 429 || errorText.includes('rate limit')) {
+      return {
+        category: ErrorCategory.RateLimit,
+        message: message,
+        canRetry: true,
+        isBillingIssue: false
+      };
+    }
+    
+    // Check for network errors
+    if (error.status === 0 || error.status === 500 || error.status === 502 || error.status === 503) {
+      return {
+        category: ErrorCategory.Network,
+        message: message,
+        canRetry: true,
+        isBillingIssue: false
+      };
+    }
+    
+    // Default to unknown
+    return {
+      category: ErrorCategory.Unknown,
+      message: message,
+      canRetry: true,
+      isBillingIssue: false
+    };
   }
 }
 
@@ -94,61 +169,5 @@ export class DOMUtils {
       rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
-  }
-}
-
-export class ArrayUtils {
-  static shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
-  static getRandomElement<T>(array: T[]): T | undefined {
-    return array.length > 0 ? array[Math.floor(Math.random() * array.length)] : undefined;
-  }
-
-  static chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      chunks.push(array.slice(i, i + chunkSize));
-    }
-    return chunks;
-  }
-}
-
-export class LoggerUtils {
-  private static isDevelopment = true; // Set to false in production builds
-
-  static error(message: string, error?: any, context?: string): void {
-    const fullMessage = context ? `[${context}] ${message}` : message;
-    console.error(fullMessage, error);
-    
-    // In production, you might want to send errors to a logging service
-    if (!this.isDevelopment) {
-      // TODO: Implement production error logging
-    }
-  }
-
-  static warn(message: string, context?: string): void {
-    const fullMessage = context ? `[${context}] ${message}` : message;
-    console.warn(fullMessage);
-  }
-
-  static info(message: string, context?: string): void {
-    if (this.isDevelopment) {
-      const fullMessage = context ? `[${context}] ${message}` : message;
-      console.info(fullMessage);
-    }
-  }
-
-  static debug(message: string, data?: any, context?: string): void {
-    if (this.isDevelopment) {
-      const fullMessage = context ? `[${context}] ${message}` : message;
-      console.debug(fullMessage, data);
-    }
   }
 }

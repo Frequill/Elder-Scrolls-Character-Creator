@@ -255,12 +255,11 @@
           </div>
         </div>
           <!-- Character Motivation Selection -->
-        <div class="option-group motivation-group">
+        <div class="option-group">
           <h3>Primary Motivation</h3>
-          <p class="option-hint">What drives your character to adventure? This will significantly impact your adventure recommendations.</p>
           <div class="options-list">
             <div *ngFor="let motivationOption of motivationOptions" 
-                 class="option-item motivation-item" 
+                 class="option-item" 
                  [class.selected]="isMotivationSelected(motivationOption)"
                  (click)="selectMotivation(motivationOption)"
                  tabindex="0"

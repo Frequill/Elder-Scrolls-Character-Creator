@@ -179,11 +179,39 @@
   border-radius: 8px;
   border-left: 4px solid #6e5a30;
   
+  .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
   h2 {
     color: #f8d87c;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin: 0;
     font-size: 1.8rem;
+  }
+  
+  .generate-class-name-btn {
+    padding: 0.5rem 1rem;
+    background-color: rgba(118, 75, 40, 0.3);
+    color: #f8d87c;
+    border: 1px solid #6e5a30;
+    border-radius: 4px;
+    font-family: 'EB Garamond', serif;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    
+    &:hover:not(:disabled) {
+      background-color: rgba(118, 75, 40, 0.5);
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
   
   .character-detail {

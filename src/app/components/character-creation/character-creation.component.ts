@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { CharacterService } from '../../services/character.service';
 import { 
   Game, 
@@ -22,6 +23,7 @@ import {
   DEITY_OPTIONS
 } from '../../models';
 import { OpenaiService } from '../../services/openai.service';
+import { ErrorUtils, ErrorCategory } from '../../shared/utils';
 
 @Component({
   selector: 'app-character-creation',
@@ -245,46 +247,46 @@ export class CharacterCreationComponent implements OnInit {  games = Object.valu
     
     this.isGeneratingClass = true;
       this.openaiService.generateCharacterClass(this.selectedGame, this.selectedRace, this.characterOptions)
-      .subscribe({        next: (generatedClass: CharacterClass) => {          const character: Character = {
+      .pipe(finalize(() => this.isGeneratingClass = false))
+      .subscribe({
+        next: (generatedClass: CharacterClass) => {
+          const character: Character = {
             race: this.selectedRace!,
             class: generatedClass,
             game: this.selectedGame!,
             sex: this.characterOptions.sex,
             age: this.characterOptions.age,
             deity: this.characterOptions.deity,
+            background: this.characterOptions.background,
+            prestige: this.characterOptions.prestige,
             motivation: this.characterOptions.motivation as CharacterMotivation
           };
           
           this.characterService.setCurrentCharacter(character);
-          this.isGeneratingClass = false;
           this.router.navigate(['/character-details']);
         },
         error: (error: any) => {
           console.error('Error generating class:', error);
-          this.isGeneratingClass = false;          this.apiConnectionError = true;
+          this.apiConnectionError = true;
           
-          if (error.message && (
-              error.message.toLowerCase().includes('billing') ||
-              error.message.toLowerCase().includes('quota') ||
-              error.message.toLowerCase().includes('payment') ||
-              error.message.toLowerCase().includes('credit') ||
-              error.message.toLowerCase().includes('rate limit')
-          )) {
-            this.billingIssueDetected = true;
-            this.apiErrorMessage = error.message || 'API error: Your account may have billing or credit issues.';
-          } else if (error.status === 401) {
-            this.apiErrorMessage = 'Authentication failed: Your API key may be invalid.';          } else {
-            this.apiErrorMessage = error.message || 'An error occurred connecting to the OpenAI API.';
+          const categorizedError = ErrorUtils.categorizeApiError(error);
+          this.billingIssueDetected = categorizedError.isBillingIssue;
+          this.apiErrorMessage = categorizedError.message;
+          
+          if (categorizedError.category === ErrorCategory.Authentication) {
+            this.apiErrorMessage = 'Authentication failed: Your API key may be invalid.';
           }
           
           // Create fallback class for offline use with game-specific skills
-          const fallbackClass: CharacterClass = this.createFallbackClass(this.selectedGame!);          const character: Character = {
+          const fallbackClass: CharacterClass = this.openaiService.getFallbackClass(this.selectedGame!);          const character: Character = {
             race: this.selectedRace!,
             class: fallbackClass,
             game: this.selectedGame!,
             sex: this.characterOptions.sex,
             age: this.characterOptions.age,
             deity: this.characterOptions.deity,
+            background: this.characterOptions.background,
+            prestige: this.characterOptions.prestige,
             motivation: this.characterOptions.motivation as CharacterMotivation
           };
           
@@ -356,46 +358,5 @@ export class CharacterCreationComponent implements OnInit {  games = Object.valu
    */
   selectMotivation(motivation: CharacterMotivation): void {
     this.characterOptions.motivation = motivation;
-  }
-
-  /**
-   * Creates a fallback character class with game-specific skills when API calls fail
-   * @param game The selected game
-   * @returns A CharacterClass with appropriate game-specific skills
-   */
-  private createFallbackClass(game: Game): CharacterClass {
-    let skills: string[] | GameSpecificSkills;
-
-    switch (game) {
-      case Game.Morrowind:
-        skills = {
-          majorSkills: ['Long Blade', 'Medium Armor', 'Restoration', 'Athletics', 'Speechcraft'],
-          minorSkills: ['Alchemy', 'Light Armor', 'Short Blade', 'Marksman', 'Alteration']
-        };
-        break;
-      
-      case Game.Oblivion:
-        skills = {
-          oblivionMajorSkills: ['Blade', 'Block', 'Restoration', 'Light Armor', 'Athletics', 'Marksman', 'Speechcraft']
-        };
-        break;
-      
-      case Game.Skyrim:
-        skills = {
-          primarySkills: ['One-handed', 'Light Armor', 'Restoration', 'Speech'],
-          secondarySkills: ['Block', 'Archery', 'Sneak', 'Alchemy']
-        };
-        break;
-        
-      default:
-        skills = ['Survival', 'Combat', 'Adaptability'];
-    }
-    
-    return {
-      name: 'Adventurer',
-      description: 'A versatile character skilled in various abilities.',
-      skills: skills,
-      gameAvailability: [game]
-    };
   }
 }

@@ -61,6 +61,8 @@ export interface Character {
   sex?: string;
   age?: string;
   deity?: string;
+  background?: string;
+  prestige?: string;
   motivation?: string;
   backstory?: string;
   imageUrl?: string;

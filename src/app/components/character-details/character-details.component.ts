@@ -24,10 +24,16 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
   isGeneratingBackstory = false;
   isGeneratingImage = false;
   isGeneratingName = false;
+  isGeneratingClassName = false;
   isGeneratingAdventureGuide = false;
   isSaved = false;
-  nameChangeRequiresBackstoryUpdate = false;
-  skipNameBackstoryUpdate = false; // Flag to remember if user doesn't want backstory updates
+  
+  // Tracking flags for button labels (Generate vs Regenerate)
+  hasGeneratedName = false;
+  hasGeneratedClassName = false;
+  hasGeneratedBackstory = false;
+  hasGeneratedImage = false;
+  hasGeneratedAdventureGuide = false;
   
   // API error handling properties
   apiConnectionError: boolean = false;
@@ -70,6 +76,13 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
       this.characterImage = this.character.imageUrl;
     }
     
+    // Initialize tracking flags based on existing data
+    this.hasGeneratedName = !!this.character.name;
+    this.hasGeneratedClassName = !!this.character.class?.name;
+    this.hasGeneratedBackstory = !!this.character.backstory;
+    this.hasGeneratedImage = !!this.character.imageUrl;
+    this.hasGeneratedAdventureGuide = !!this.character.adventureGuide;
+    
     this.boundHandleOutsideClick = this.handleOutsideClick.bind(this);
     document.body.addEventListener('click', this.boundHandleOutsideClick);
     
@@ -88,13 +101,13 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
         error: () => {}
       });
     }
-  }/**
+  }
+
+  /**
    * Updates the character name when changed by the user
-   */  updateName(): void {
+   */
+  updateName(): void {
     if (this.character) {
-      // Store the old name for possible use in backstory/adventure guide updates
-      const oldName = this.character.name;
-      
       // Handle empty name field
       if (!this.characterName.trim() && this.character.name) {
         // If they cleared the name field but had a name before
@@ -105,30 +118,17 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
       
       // If a name was entered, process it
       if (this.characterName.trim()) {
-        // Check if name has changed and backstory or adventure guide exists
-        const nameChanged = this.character.name !== this.characterName.trim();
-        const hasBackstory = !!this.character.backstory;
-        const hasAdventureGuide = !!this.character.adventureGuide;
-        
         // Update the name
         this.character.name = this.characterName.trim();
         this.characterService.setCurrentCharacter(this.character);
-        
-        // If name changed and backstory or adventure guide exists, ask user if they want to update
-        if (nameChanged && (hasBackstory || hasAdventureGuide)) {
-          // Set flag to remember we had a name change that might need backstory/adventure update
-          this.nameChangeRequiresBackstoryUpdate = true;
-          this.updateBackstoryForNameChange();
-        } else if (nameChanged) {
-          // If the name changed but there's no backstory/adventure guide yet, just save the character
-          this.saveCharacter();
-        }
       }
     }
   }
-    /**
+  
+  /**
    * Generates a race and gender appropriate name for the character
-   */  generateName(): void {
+   */
+  generateName(): void {
     if (!this.character) return;
     
     // Reset error states
@@ -156,6 +156,8 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           }
         }
         
+        console.log('Name regeneration - Old name:', oldName, '| New name:', name);
+        
         this.characterName = name;
         if (this.character) {
           // Update the name
@@ -164,6 +166,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           
           // If backstory exists, update it by replacing the old name with the new name
           if (this.backstory && oldName) {
+            console.log('Updating backstory with new name...');
             this.backstory = this.characterService.replaceNameInBackstory(this.backstory, oldName, name);
             this.character.backstory = this.backstory;
             this.characterService.setCurrentCharacter(this.character);
@@ -179,6 +182,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           // Don't automatically save - just mark as needing save
           this.isSaved = false;
         }
+        this.hasGeneratedName = true;
         this.isGeneratingName = false;
       },
       error: (error) => {
@@ -190,106 +194,78 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
       }
     });
   }
+
   /**
-   * Updates the backstory and adventure guide to incorporate the character's name
-   */  updateBackstoryForNameChange(): void {
-    if (!this.character || !this.character.name) return;
+   * Generates a new class name for the character while keeping the description and skills
+   * Automatically updates backstory and adventure guide to use the new class name
+   */
+  generateClassName(): void {
+    if (!this.character) return;
     
-    // If user previously opted to skip backstory updates, don't prompt again
-    if (this.skipNameBackstoryUpdate) {
+    // Reset error states
+    this.apiConnectionError = false;
+    
+    // Check if API key is set
+    if (!this.openaiService.getApiKey()) {
+      this.apiConnectionError = true;
+      this.apiErrorMessage = 'OpenAI API key is required for class name generation.';
       return;
     }
     
-    // Store current name as the new name
-    const newName = this.character.name;
-    
-    // First try to extract the complete name (first+last) from the backstory
-    let oldName = this.extractNameFromBackstory(this.backstory || '');
-    
-    // If we couldn't get a name from the backstory but there's a nameChangeRequiresBackstoryUpdate flag,
-    // it means we had a previous name that we should use
-    if (!oldName && this.nameChangeRequiresBackstoryUpdate) {
-      // There was a previous name change that we need to handle
-      const previousName = this.characterName !== newName ? this.characterName : '';
-      if (previousName && previousName !== newName) {
-        oldName = previousName;
-      }
-    }
-    
-    // If we still haven't found an old name, check if there's a partial match in the backstory
-    // This helps catch cases where only part of a name (first or last) might be in the backstory
-    if (!oldName && this.backstory) {
-      // Look for both first and last name patterns more aggressively
-      const nameMatches = this.backstory.match(/\b([A-Z][a-z]+)\b/g);
-      if (nameMatches && nameMatches.length > 0) {
-        // Use the first capitalized word that might be a name
-        oldName = nameMatches[0];
-      }
-    }
-    
-    if (oldName && this.backstory) {
-      // Provide options: update, don't update, or don't ask again
-      const userChoice = confirm('Would you like to update the backstory and adventure guide to replace the old name with your new name?');
-        if (userChoice) {
-        // User wants to update the backstory with the new name
-        this.backstory = this.characterService.replaceNameInBackstory(this.backstory, oldName, newName);
+    this.isGeneratingClassName = true;
+    this.characterService.generateClassName(this.character).subscribe({
+      next: (newClassName) => {
+        if (!this.character) return;
         
-        if (this.character) {
+        // Extract the current class name from backstory/adventure guide to ensure we replace the right text
+        const oldClassNameFromText = this.extractClassNameFromText(this.backstory || '');
+        const oldClassName = oldClassNameFromText || this.character.class.name;
+        
+        console.log('Class name changed from:', oldClassName, 'to:', newClassName);
+        
+        // Update the class name
+        this.character.class.name = newClassName;
+        this.characterService.setCurrentCharacter(this.character);
+        
+        // Update backstory with new class name
+        if (this.backstory && oldClassName) {
+          this.backstory = this.characterService.replaceClassNameInBackstory(
+            this.backstory,
+            oldClassName,
+            newClassName
+          );
           this.character.backstory = this.backstory;
-            // Also update the adventure guide if it exists
-          if (this.character.adventureGuide) {
-            this.character.adventureGuide = this.characterService.replaceNameInAdventureGuide(
-              this.character.adventureGuide,
-              oldName,
-              newName
-            );
-          }
-          
           this.characterService.setCurrentCharacter(this.character);
-          // Mark as changed but don't save automatically
-          this.isSaved = false;
         }
-      } else {
-        // Ask if they want to be prompted in the future
-        this.skipNameBackstoryUpdate = !confirm('Would you like to be asked about this again for future name changes?');
-      }    } else if (this.character.adventureGuide) {
-      // If we couldn't extract a name from backstory but there is an adventure guide
-      const userChoice = confirm('Would you like to update the adventure guide with your new name?');
-      
-      if (userChoice) {
-        // Even without oldName from backstory, we can try to update the adventure guide
-        // by using the character's previous name
-        const previousName = this.character.name !== newName ? this.character.name : '';
         
-        if (previousName) {          this.character.adventureGuide = this.characterService.replaceNameInAdventureGuide(
+        // Update adventure guide with new class name
+        if (this.character.adventureGuide && oldClassName) {
+          this.character.adventureGuide = this.characterService.replaceClassNameInAdventureGuide(
             this.character.adventureGuide,
-            previousName,
-            newName
+            oldClassName,
+            newClassName
           );
           this.characterService.setCurrentCharacter(this.character);
-          // Mark as changed but don't save automatically
-          this.isSaved = false;
-        } else {
-          // If no previous name, ask if they want to generate a new backstory/adventure guide
-          if (confirm('Would you like to generate a new backstory with your new name?')) {
-            this.generateBackstoryWithName();
-          }
         }
-      } else {
-        // Ask if they want to be prompted in the future
-        this.skipNameBackstoryUpdate = !confirm('Would you like to be asked about this again for future name changes?');
+        
+        // Mark as having generated a class name
+        this.hasGeneratedClassName = true;
+        
+        // Don't automatically save - just mark as needing save
+        this.isSaved = false;
+        this.isGeneratingClassName = false;
+      },
+      error: (error) => {
+        console.error('Error generating class name:', error);
+        this.isGeneratingClassName = false;
+        this.apiConnectionError = true;
+        this.apiErrorMessage = 'Failed to generate class name: ' + 
+          (error.message || 'Unknown error occurred');
       }
-    } else {
-      // If we can't find the old name or there's no backstory, ask if they want to generate a new one
-      if (confirm('Would you like to generate a new backstory with your new name?')) {
-        this.generateBackstoryWithName();
-      } else {
-        // Ask if they want to be prompted in the future
-        this.skipNameBackstoryUpdate = !confirm('Would you like to be asked about this again for future name changes?');
-      }
-    }
+    });
   }
-    /**
+
+  /**
    * Generates a backstory that incorporates the character's name
    */
   generateBackstoryWithName(): void {
@@ -393,6 +369,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           
           this.characterService.setCurrentCharacter(this.character);
         }
+        this.hasGeneratedBackstory = true;
         this.isGeneratingBackstory = false;
       },
       error: (error) => {
@@ -441,6 +418,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           this.character.imageUrl = imageUrl;
           this.characterService.setCurrentCharacter(this.character);
         }
+        this.hasGeneratedImage = true;
         this.isGeneratingImage = false;
       },
       error: (error) => {
@@ -490,6 +468,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
           // Mark as changed but don't save automatically
           this.isSaved = false;
         }
+        this.hasGeneratedAdventureGuide = true;
         this.isGeneratingAdventureGuide = false;
       },
       error: (error) => {
@@ -515,7 +494,6 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
   /**
    * Saves the current character to local storage
    * Ensures character has a name before saving
-   * Checks if backstory needs updating before saving
    * Shows a temporary confirmation message
    */
   saveCharacter(): void {
@@ -525,16 +503,6 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
       this.character.name = this.characterName.trim();
     }
     
-    // If name changed and backstory or adventure guide exists, prompt to update them
-    if (this.nameChangeRequiresBackstoryUpdate) {
-      // Reset the flag first to prevent potential recursive loops
-      this.nameChangeRequiresBackstoryUpdate = false;
-      
-      // Prompt user to update backstory and adventure guide with the new name
-      this.updateBackstoryForNameChange();
-      return; // Exit - user will need to save again after making changes
-    }
-    
     this.storageService.saveCharacter(this.character);
     this.isSaved = true;
     
@@ -542,6 +510,7 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
       this.isSaved = false;
     }, 2000);
   }
+
   /**
    * Clears the current character and navigates to character creation
    */
@@ -569,49 +538,46 @@ export class CharacterDetailsComponent implements OnInit, OnDestroy {
    * @param backstory The character backstory text
    * @returns The extracted name if found, null otherwise
    * @private
-   */  private extractNameFromBackstory(backstory: string): string | null {
+   */
+  private extractNameFromBackstory(backstory: string): string | null {
     if (!backstory) return null;
     
-    // Common first-person introduction patterns - expanded to capture full names with up to 4 components
-    const firstPersonPatterns = [
-      /I am ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,       // "I am Name"
-      /My name is ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/, // "My name is Name"
-      /I,\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,       // "I, Name,"
-      /I'm ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,        // "I'm Name"
-      /([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3}) is my name/, // "Name is my name"
-      /I call myself ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/, // "I call myself Name"
-      /Known as ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/, // "Known as Name"
-      /My full name is ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/, // "My full name is Name"
+    // Current format: "You are [Name] the [Race]" pattern
+    const youArePattern = /^You are ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3}) the/;
+    const match = backstory.match(youArePattern);
+    
+    return match && match[1] ? match[1].trim() : null;
+  }
+  
+  /**
+   * Extracts the class name from backstory or adventure guide text
+   * Looks for patterns like "as a [ClassName]" or "ClassName by trade"
+   * 
+   * @param text The backstory or adventure guide text
+   * @returns The extracted class name if found, null otherwise
+   * @private
+   */
+  private extractClassNameFromText(text: string): string | null {
+    if (!text) return null;
+    
+    // Common patterns for class names in Elder Scrolls text
+    const classPatterns = [
+      /(?:as|am|is) (?:a|an) ([A-Z][a-zA-Z]+)/,  // "as a Battlemage", "am a Nightblade"
+      /([A-Z][a-zA-Z]+) by (?:trade|profession)/,  // "Spellsword by trade"
+      /trained (?:as|to be) (?:a|an) ([A-Z][a-zA-Z]+)/, // "trained as a Crusader"
+      /calling (?:as|of) (?:a|an) ([A-Z][a-zA-Z]+)/, // "calling as a Monk"
+      /skills of (?:a|an) ([A-Z][a-zA-Z]+)/, // "skills of a Pilgrim"
+      /path of (?:the|a|an) ([A-Z][a-zA-Z]+)/, // "path of the Witchhunter"
     ];
     
-    // Third-person narrative patterns - expanded to capture full names with up to 4 components
-    const thirdPersonPatterns = [
-      /^([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3}) (?:was|is) (?:a|an)/,  // "Name was/is a/an" (common opening)
-      /^([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3}),\s+(?:a|an)/,          // "Name, a/an" (common opening)
-      /known as ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/i,             // "known as Name" (case insensitive)
-      /called ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,                // "called Name"
-      /named ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,                 // "named Name"
-      /^(?:The )?(?:tale|story) of ([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/ // "The tale/story of Name"
-    ];
-    
-    // Check first-person patterns first (more reliable)
-    for (const pattern of firstPersonPatterns) {
-      const match = backstory.match(pattern);
+    for (const pattern of classPatterns) {
+      const match = text.match(pattern);
       if (match && match[1]) {
-        // Found a name
-        return match[1].trim();
-      }
-    }
-    
-    // Then try third-person patterns
-    for (const pattern of thirdPersonPatterns) {
-      const match = backstory.match(pattern);
-      if (match && match[1]) {
-        // Skip common words that might be mistakenly matched
-        const name = match[1].trim();
-        const commonWords = ['the', 'this', 'that', 'their', 'they', 'she', 'he'];
-        if (!commonWords.includes(name.toLowerCase())) {
-          return name;
+        const className = match[1].trim();
+        // Filter out common words that aren't class names
+        const commonWords = ['the', 'they', 'their', 'them', 'this', 'that', 'There', 'These', 'Those'];
+        if (!commonWords.includes(className)) {
+          return className;
         }
       }
     }
